@@ -30,11 +30,11 @@ async function cwGet(path: string) {
 /**
  * Create a new Agent Bot:
  *  - name: "<BusinessName> Bot"
- *  - outgoing_url (webhook): https://n8n.sost.work/webhook/<BusinessName>
+ *  - outgoing_url (webhook): https://n8n.mcp4.ai/webhook/<BusinessName>
  * Returns: { id, access_token }
  */
 export async function createAgentBot(businessName: string) {
-  const outgoing_url = `${process.env.N8N_BASE_URL || 'https://n8n.sost.work'}/webhook/${businessName}`;
+  const outgoing_url = `${process.env.N8N_BASE_URL || 'https://n8n.mcp4.ai'}/webhook/${businessName}`;
   const payload = {
     name: `${businessName} Bot`,
     description: `Bot for ${businessName} demo`,

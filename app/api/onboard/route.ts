@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
     const previewSystemMessageFile = `./public/system_messages/n8n_System_Message_${slugWithHash}.md`;
     const adminSystemMessageFile = `./public/system_messages/n8n_System_Message_${businessName}.md`;
     
-    let finalSystemMessage: string;
-    let systemMessageFile: string;
+    let finalSystemMessage: string | undefined;
+    let systemMessageFile: string = adminSystemMessageFile; // Default to admin file
     let reusingPreview = false;
 
     // Check if we have a fresh preview file to reuse
@@ -160,18 +160,23 @@ export async function POST(request: NextRequest) {
       // Step 5: Set system message file path
       systemMessageFile = adminSystemMessageFile;
     }
+
+    if (!finalSystemMessage) {
+      return NextResponse.json(
+        { error: 'Failed to generate or load system message' },
+        { status: 500 }
+      );
+    }
     
     // Always inject/update Website links section (for both new and reused files)
-    if (finalSystemMessage) {
-      finalSystemMessage = injectWebsiteLinksSection(
-        finalSystemMessage, 
-        payload.business_url, 
-        payload.canonicalUrls || []
-      );
-      
-      // Write the updated system message file
-      await writeTextFile(systemMessageFile, finalSystemMessage);
-    }
+    finalSystemMessage = injectWebsiteLinksSection(
+      finalSystemMessage, 
+      payload.business_url, 
+      payload.canonicalUrls || []
+    );
+    
+    // Write the updated system message file
+    await writeTextFile(systemMessageFile, finalSystemMessage);
 
     // Step 6: Create demo URL and Chatwoot inbox
     // Use Next.js route structure for both local and production
@@ -183,7 +188,7 @@ export async function POST(request: NextRequest) {
     const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl);
 
     // Step 7: Render demo HTML
-    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatwoot.mcp4.ai';
+    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai';
     const demoHTML = renderDemoHTML({
       businessName,
       slug,
@@ -207,7 +212,7 @@ export async function POST(request: NextRequest) {
     let workflowDuplicationResult: { success: boolean; error?: string } | undefined;
 
     try {
-      // 1) Create Chatwoot Agent Bot named "<BusinessName> Bot" with webhook https://n8n.sost.work/webhook/<BusinessName>
+      // 1) Create Chatwoot Agent Bot named "<BusinessName> Bot" with webhook https://n8n.mcp4.ai/webhook/<BusinessName>
       console.log(`Creating agent bot for ${businessName}...`);
       const bot = await createAgentBot(businessName);
       botId = bot.id;
@@ -217,7 +222,7 @@ export async function POST(request: NextRequest) {
       // 2) Assign bot to the newly created inbox
       console.log(`Assigning bot ${botId} to inbox ${inbox_id}...`);
       try {
-        await assignBotToInbox(inbox_id, botId);
+        await assignBotToInbox(inbox_id, botId!);
         console.log(`Bot successfully assigned to inbox`);
       } catch (assignError) {
         console.warn(`Bot assignment failed, but continuing with workflow creation:`, assignError);
@@ -313,7 +318,7 @@ export async function POST(request: NextRequest) {
     } else if (botId) {
       // Add success notes
       response.notes = {
-        chatwoot_bot: `Created ${businessName} Bot, webhook set to https://n8n.sost.work/webhook/${businessName}, assigned to the new inbox.`,
+        chatwoot_bot: `Created ${businessName} Bot, webhook set to https://n8n.mcp4.ai/webhook/${businessName}, assigned to the new inbox.`,
         n8n_webhook_trigger: workflowDuplicationResult?.success 
           ? `Workflow duplication request sent successfully to n8n webhook endpoint.`
           : `Workflow duplication failed: ${workflowDuplicationResult?.error || 'Unknown error'}`,

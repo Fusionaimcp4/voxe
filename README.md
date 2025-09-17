@@ -48,12 +48,12 @@ Create a `.env` file with the following variables:
 
 ```bash
 # Chatwoot
-CHATWOOT_BASE_URL=https://chatwoot.mcp4.ai
+CHATWOOT_BASE_URL=https://chatvoxe.mcp4.ai
 CHATWOOT_ACCOUNT_ID=1
 CHATWOOT_API_KEY=your_chatwoot_api_key_here
 
 # n8n Integration (webhook-based workflow duplication)
-N8N_DUPLICATE_ENDPOINT=https://n8n.sost.work/webhook/duplicate-agent
+N8N_DUPLICATE_ENDPOINT=https://n8n.mcp4.ai/webhook/duplicate-agent
 
 # LLM
 OPENAI_API_KEY=sk-your_openai_api_key_here
