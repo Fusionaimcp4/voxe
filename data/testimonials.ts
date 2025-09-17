@@ -18,7 +18,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     name: "Maya Chen",
     company: "Zephyr Analytics",
     title: "Head of Engineering",
-    avatar: "/avatars/maya-chen.jpg",
+    avatar: "/images/avatars/maya-chen.png",
     alt: "Portrait of Maya Chen",
   },
   {
@@ -27,7 +27,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     name: "Ibrahim Khalid",
     company: "OrbitPay",
     title: "Platform Lead",
-    avatar: "/avatars/ibrahim-khalid.jpg",
+    avatar: "/images/avatars/Ibrahim-Khalid.png",
     alt: "Portrait of Ibrahim Khalid",
   },
   {
@@ -36,7 +36,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     name: "Sofia Almeida",
     company: "Trailhead Robotics",
     title: "Software Manager",
-    avatar: "/avatars/sofia-almeida.jpg",
+    avatar: "/images/avatars/Sofia-Almeida.png",
     alt: "Portrait of Sofia Almeida",
   },
   {
@@ -45,7 +45,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     name: "Jules Laurent",
     company: "Cinder Studio",
     title: "CTO",
-    avatar: "/avatars/jules-laurent.jpg",
+    avatar: "/images/avatars/Jules-Laurent.png",
     alt: "Portrait of Jules Laurent",
   },
   {
@@ -54,7 +54,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     name: "Priya Narayan",
     company: "Nimbus Commerce",
     title: "Engineering Manager",
-    avatar: "/avatars/priya-narayan.jpg",
+    avatar: "/images/avatars/Priya-Narayan.png",
     alt: "Portrait of Priya Narayan",
   },
   {
@@ -63,7 +63,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     name: "Marco Santoro",
     company: "Lumen Health",
     title: "Senior Developer",
-    avatar: "/avatars/marco-santoro.jpg",
+    avatar: "/images/avatars/Marco-Santoro.png",
     alt: "Portrait of Marco Santoro",
   },
   {
@@ -72,7 +72,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     name: "Vera Kowalski",
     company: "Bluepeak Logistics",
     title: "SRE Lead",
-    avatar: "/avatars/vera-kowalski.jpg",
+    avatar: "/images/avatars/Vera-Kowalski.png",
     alt: "Portrait of Vera Kowalski",
   },
   

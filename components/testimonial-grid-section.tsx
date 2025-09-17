@@ -60,7 +60,7 @@ const TestimonialCard = ({ quote, name, company, title, avatar, alt, type }) => 
       <div className={`relative z-10 font-normal break-words ${quoteClasses}`}>{quote}</div>
       <div className="relative z-10 flex justify-start items-center gap-3">
         <Image
-          src={"/placeholder-user.jpg"}
+          src={avatar || "/placeholder-user.jpg"}
           alt={alt || `${name} avatar`}
           width={avatarSize}
           height={avatarSize}
