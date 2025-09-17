@@ -14,7 +14,7 @@ export function LargeTestimonial() {
               </div>
               <div className="flex justify-start items-center gap-5">
                 <Image
-                  src="/tomas.png"
+                  src="/images/yisak-surya.png"
                   alt="Portrait of Alex Thompson"
                   width={48}
                   height={48}
