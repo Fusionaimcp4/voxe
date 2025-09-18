@@ -53,7 +53,7 @@ html {
               s.parentNode.insertBefore(g,s);
               g.onload=function(){
                 window.chatwootSDK.run({
-                  websiteToken: 'NJzYTHcT7937oMjf8Kjng6UQ',
+                  websiteToken: 'JJtsE8vyq7VRS5bV4p8FwhwQ',
                   baseUrl: BASE_URL
                 })
               }
