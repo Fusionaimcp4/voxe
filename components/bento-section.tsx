@@ -74,7 +74,7 @@ export function BentoSection() {
               AI + Hybrid Support
             </h2>
             <p className="w-full max-w-[600px] text-center text-muted-foreground text-lg md:text-xl font-medium leading-relaxed">
-            complete customer service solution.
+            Transform your website into a sales machine with an AI agent.
             </p>
           </div>
         </div>
