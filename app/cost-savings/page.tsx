@@ -374,7 +374,7 @@ export default function CostSavingsPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-6">Why Choose LocalBox?</h2>
+            <h2 className="text-4xl font-bold mb-6">Why Choose voxe?</h2>
             <p className="text-xl text-zinc-400 max-w-3xl mx-auto">
               Enterprise-grade AI support without enterprise costs
             </p>
