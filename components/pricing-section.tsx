@@ -20,32 +20,30 @@ export function PricingSection() {
       <div className="self-stretch px-5 flex flex-col md:flex-row justify-center items-center gap-4 md:gap-6 mt-10 max-w-[900px] mx-auto">
         <Card className="flex-1 w-full">
           <CardHeader>
-            <CardTitle>Estimate your setup cost</CardTitle>
+            <CardTitle>Starter (Managed-Hosted Pilot)</CardTitle>
             <CardDescription>
-              Get an estimated one-time cost—based on your team size, expected resolution
-              volume, and more.
+              Fixed setup fee + low monthly hosting. Perfect for testing the waters.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/cost-savings">
               <Button variant="link" className="p-0">
-                Calculate costs
+                Get started
               </Button>
             </Link>
           </CardContent>
         </Card>
         <Card className="flex-1 w-full">
           <CardHeader>
-            <CardTitle>See how much you could save</CardTitle>
+            <CardTitle>Self-Hosted</CardTitle>
             <CardDescription>
-              Estimate how much you could save by switching from expensive, per-seat SaaS tools like Intercom or
-              Zendesk.
+              One-time onboarding + optional support plan. Unlimited agents, unlimited AI resolutions, no per-resolution add-ons.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/cost-savings">
               <Button variant="link" className="p-0">
-                Calculate savings
+                Learn more
               </Button>
             </Link>
           </CardContent>

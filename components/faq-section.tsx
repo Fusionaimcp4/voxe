@@ -7,19 +7,19 @@ import { ChevronDown } from "lucide-react"
 const faqData = [
   {
     q: "How is pricing structured?",
-    a: "One-time setup fee, unlimited agents and AI usage, no recurring per-seat or per-message charges.",
+    a: "One-time setup fee, unlimited agents and AI usage, no recurring per-seat or per-resolution charges.",
   },
   {
     q: "Do I own my data?",
     a: "Yes, your instance is self-hosted, giving you full data ownership and compliance control.",
   },
   {
-    q: "What happens if humans don’t reply?",
+    q: "What happens if humans don't reply?",
     a: "The Holding AI Agent acknowledges the user and can notify supervisors automatically.",
   },
   {
     q: "How does this differ from Intercom Fin or Zendesk bots?",
-    a: "We provide unlimited AI usage, no per-resolution costs, and self-hosting so you’re not locked in.",
+    a: "We provide unlimited AI usage, no per-resolution costs, and self-hosting so you're not locked in.",
   },
   {
     q: "Is reporting included?",

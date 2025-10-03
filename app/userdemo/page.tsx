@@ -238,8 +238,8 @@ export default function UserFacingDemoPage() {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Experience an AI Support Demo for Your Business</h1>
-            <p className="mt-2 max-w-2xl text-zinc-400">Enter your website, leave your contact, and generate a tailored demo — all in a couple of minutes.</p>
+            <h1 className="text-3xl font-semibold tracking-tight">Experience Voxe's AI Agent + Helpdesk Demo</h1>
+            <p className="mt-2 max-w-2xl text-zinc-400">Enter your website, leave your contact, and generate a tailored Voxe demo — all in a couple of minutes.</p>
           </div>
           <div className="hidden md:block text-sm text-zinc-400">
             <div className="flex items-center gap-2">
@@ -401,11 +401,11 @@ export default function UserFacingDemoPage() {
               </Card>
             </div>
             <div className="lg:col-span-1">
-              <Card title="What you’ll get" className="h-full">
+              <Card title="What you'll get" className="h-full">
                 <ul className="list-disc pl-5 space-y-2 text-sm text-zinc-300">
-                  <li>A live demo page with your branding</li>
-                  <li>AI chat that answers common questions instantly</li>
-                  <li>Optional handoff to your team for complex issues</li>
+                  <li>A live demo page with Voxe's AI Agent</li>
+                  <li>AI chat that answers support questions instantly</li>
+                  <li>Smart routing to human agents for complex issues</li>
                   <li>Links you can share with stakeholders</li>
                 </ul>
               </Card>
@@ -490,7 +490,7 @@ export default function UserFacingDemoPage() {
                 <Card title="Your Demo Is Ready!" subtitle="Share these links with your team.">
                   <div className="space-y-4">
                     <div>
-                      <div className="text-sm text-zinc-400">Demo Page with Knowledge Base Support Chat</div>
+                      <div className="text-sm text-zinc-400">Voxe Demo Page with AI Agent + Helpdesk</div>
                       <a href={result.demo_url} target="_blank" className="mt-1 inline-flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-emerald-300 hover:bg-white/10">{result.demo_url}</a>
                     </div>
                     {/* <div>
@@ -503,9 +503,9 @@ export default function UserFacingDemoPage() {
               <div className="lg:col-span-1">
                 <Card title="What to try next" className="h-full">
                   <ol className="list-decimal pl-5 space-y-2 text-sm text-zinc-300">
-                    <li>Open the demo and ask a few common customer questions.</li>
-                    <li>Try a refund/billing question to see human handoff.</li>
-                    <li>Share the link with a teammate and test together.</li>
+                    <li>Open the demo and ask about Voxe's AI Agent capabilities.</li>
+                    <li>Try asking "What do you offer?" to see instant AI responses.</li>
+                    <li>Test complex support scenarios to see human handoff.</li>
                   </ol>
                   <div className="mt-4 rounded-2xl bg-emerald-500/10 p-3 text-sm text-emerald-300">
                     Tip: the AI answers instantly for common questions; complex ones route to a human smoothly.

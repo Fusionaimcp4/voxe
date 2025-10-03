@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Check, X, AlertTriangle, Zap, Shield, BarChart3, Users, MessageSquare, DollarSign, Clock, Database } from "lucide-react";
+import { Header } from "@/components/header";
 
 export default function CostSavingsPage() {
   const pricingPlans = [
@@ -82,6 +83,9 @@ export default function CostSavingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-zinc-900 text-zinc-100">
+      {/* Header */}
+      <Header />
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-zinc-900"></div>

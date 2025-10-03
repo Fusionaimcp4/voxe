@@ -8,11 +8,11 @@ import { VideoModal } from "./video-modal"
 export function HeroSection() {
   return (
     <section
-      className="flex flex-col items-center text-center relative mx-auto rounded-2xl overflow-hidden my-6 py-0 px-4
-         w-full h-[400px] md:w-[1220px] md:h-[600px] lg:h-[810px] md:px-0"
+      className="flex flex-col items-center text-center relative mx-auto rounded-2xl overflow-hidden my-6 py-8 pb-20 md:pb-32 px-4
+         w-full min-h-[500px] md:w-[1220px] md:h-[600px] lg:h-[810px] md:py-0 md:px-0"
     >
       {/* SVG Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <svg
           width="100%"
           height="100%"
@@ -439,33 +439,55 @@ export function HeroSection() {
         <Header />
       </div>
 
-      <div className="relative z-10 space-y-4 md:space-y-5 lg:space-y-6 mb-6 md:mb-7 lg:mb-9 max-w-md md:max-w-[500px] lg:max-w-[588px] mt-16 md:mt-[120px] lg:mt-[160px] px-4">
+      <div className="relative z-20 space-y-4 md:space-y-5 lg:space-y-6 mb-6 md:mb-7 lg:mb-9 max-w-md md:max-w-[500px] lg:max-w-[588px] mt-8 md:mt-[120px] lg:mt-[160px] px-4">
         <h1 className="text-foreground text-3xl md:text-4xl lg:text-6xl font-semibold leading-tight">
-        AI Support That Converts Visitors into Clients. Clients into Fans.
+        Own your AI Agent and Helpdesk. Not the bill.
         </h1>
         <p className="text-muted-foreground text-base md:text-base lg:text-lg font-medium leading-relaxed max-w-lg mx-auto">
-          Unlimited AI + unlimited agents, one-time setup, and full data ownership.
+          Voxe delivers instant hybrid support, unlimited agents, and unlimited AI resolutions—without per-seat or per-resolution fees.
         </p>
-      </div>
-
-      <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4">
-      <Link href="/userdemo">
-          <Button
-            variant="ghost"
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-8 py-3 rounded-full font-medium text-base shadow-lg ring-1 ring-white/10"
-          >
-            See It in Action
-          </Button>
-        </Link>
-        <Link href="/contact">
-          <Button
-            variant="ghost"
-            className="text-secondary-foreground hover:bg-secondary/10 px-8 py-3 rounded-full font-medium text-base"
-          >
-            contact us
-          </Button>
-        </Link>
-       
+        
+        {/* CTA Buttons positioned right after the subhead */}
+        <div className="relative z-30 flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
+          <Link href="/userdemo">
+            <Button
+              variant="ghost"
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-8 py-3 rounded-full font-medium text-base shadow-lg ring-1 ring-white/10"
+            >
+              See a demo
+            </Button>
+          </Link>
+          <Link href="/contact">
+            <Button
+              variant="ghost"
+              className="text-secondary-foreground hover:bg-secondary/10 px-8 py-3 rounded-full font-medium text-base"
+            >
+              Try a pilot
+            </Button>
+          </Link>
+        </div>
+        
+        {/* Key Benefits */}
+        <div className="space-y-3 mt-6">
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+            <p className="text-muted-foreground text-sm md:text-base font-medium">
+              AI answers ~95% instantly; smart routing handles the rest.
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+            <p className="text-muted-foreground text-sm md:text-base font-medium">
+              Self-hosted or managed-hosted: your infrastructure, your data.
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+            <p className="text-muted-foreground text-sm md:text-base font-medium">
+              Predictable cost; zero vendor lock-in.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   )

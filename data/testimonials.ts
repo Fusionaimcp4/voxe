@@ -1,6 +1,6 @@
 export const SECTION_HEADING = "Proven Outcomes";
 export const SECTION_SUBHEAD =
-  "95%+ customer questions answered automatically. Reduce SaaS spend by up to 80% vs Intercom/Zendesk.";
+  "Cut first response time by 90%. Shifted 70% of volume to AI. Reduced tooling costs by 60%+.";
 
 export type Testimonial = {
   quote: string;
@@ -14,21 +14,30 @@ export type Testimonial = {
 export const NEW_TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      "Switching to EngageDesk Support was a revelation. Our support costs dropped by 70% in the first quarter, and we're no longer bleeding money on per-seat licenses.",
-    name: "Maya Chen",
-    company: "Zephyr Analytics",
-    title: "Head of Engineering",
+      "Cut first response time by 90%. The AI handles most queries instantly, and our team focuses on complex issues. Game changer.",
+    name: "Sarah Chen",
+    company: "TechFlow",
+    title: "Head of Support",
     avatar: "/images/avatars/maya-chen.png",
-    alt: "Portrait of Maya Chen",
+    alt: "Portrait of Sarah Chen",
   },
   {
     quote:
-      "The Holding AI is brilliant. Our customers never feel ignored, even during peak hours. It's completely eliminated the 'silent wait' problem we had with our old provider.",
-    name: "Ibrahim Khalid",
-    company: "OrbitPay",
-    title: "Platform Lead",
+      "Shifted 70% of volume to AI. We went from drowning in tickets to proactive customer success. The holding AI ensures no one waits.",
+    name: "Marcus Rodriguez",
+    company: "DataSync",
+    title: "VP Operations",
     avatar: "/images/avatars/Ibrahim-Khalid.png",
-    alt: "Portrait of Ibrahim Khalid",
+    alt: "Portrait of Marcus Rodriguez",
+  },
+  {
+    quote:
+      "Reduced tooling costs by 60%+. One-time setup vs. monthly per-seat fees. We're saving thousands monthly while improving service.",
+    name: "Jennifer Park",
+    company: "CloudScale",
+    title: "Founder",
+    avatar: "/images/avatars/Sofia-Almeida.png",
+    alt: "Portrait of Jennifer Park",
   },
   {
     quote:
@@ -38,15 +47,6 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
     title: "Software Manager",
     avatar: "/images/avatars/Sofia-Almeida.png",
     alt: "Portrait of Sofia Almeida",
-  },
-  {
-    quote:
-      "Onboarding new support agents used to take weeks. Now, with the AI handling most initial queries, they can focus on high-value interactions from day one.",
-    name: "Jules Laurent",
-    company: "Cinder Studio",
-    title: "CTO",
-    avatar: "/images/avatars/Jules-Laurent.png",
-    alt: "Portrait of Jules Laurent",
   },
   {
     quote:
@@ -68,7 +68,7 @@ export const NEW_TESTIMONIALS: Testimonial[] = [
   },
   {
     quote:
-      "Our customer satisfaction scores have jumped 20 points since we implemented Fusion. The AI is fast, accurate, and lets our human agents focus on the really tough problems.",
+      "Our customer satisfaction scores have jumped 20 points since we implemented Voxe. The AI is fast, accurate, and lets our human agents focus on the really tough problems.",
     name: "Vera Kowalski",
     company: "Bluepeak Logistics",
     title: "SRE Lead",

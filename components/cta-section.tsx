@@ -105,20 +105,31 @@ export function CTASection() {
       <div className="relative z-10 flex flex-col justify-start items-center gap-9 max-w-4xl mx-auto">
         <div className="flex flex-col justify-start items-center gap-4 text-center">
           <h2 className="text-foreground text-4xl md:text-5xl lg:text-[68px] font-semibold leading-tight md:leading-tight lg:leading-[76px] break-words max-w-[435px]">
-          Curious how AI can support your customers?
+          Own the stack. Keep the savings.
           </h2>
           <p className="text-muted-foreground text-sm md:text-base font-medium leading-[18.20px] md:leading-relaxed break-words max-w-2xl">
           See a demo chat tailored to your business in under a minute.
           </p>
         </div>
-        <Link href="/userdemo">
-          <Button
-            className="px-[30px] py-2 bg-secondary text-secondary-foreground text-base font-medium leading-6 rounded-[99px] shadow-[0px_0px_0px_4px_rgba(255,255,255,0.13)] hover:bg-secondary/90 transition-all duration-200"
-            size="lg"
-          >
-            See It in Action
-          </Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <Link href="/userdemo">
+            <Button
+              className="px-[30px] py-2 bg-secondary text-secondary-foreground text-base font-medium leading-6 rounded-[99px] shadow-[0px_0px_0px_4px_rgba(255,255,255,0.13)] hover:bg-secondary/90 transition-all duration-200"
+              size="lg"
+            >
+              See a demo
+            </Button>
+          </Link>
+          <Link href="/contact">
+            <Button
+              variant="ghost"
+              className="px-[30px] py-2 text-secondary-foreground text-base font-medium leading-6 rounded-[99px] hover:bg-secondary/10 transition-all duration-200"
+              size="lg"
+            >
+              Start a pilot
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   )

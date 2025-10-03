@@ -45,18 +45,18 @@ const BentoCard = ({
 export function BentoSection() {
   const pillars = [
     {
-      title: "Unlimited Usage",
-      benefit: "Add unlimited agents and handle unlimited AI conversations without extra cost.",
+      title: "AI Agent",
+      benefit: "Answers ~95% instantly, multi-step flows (refunds, account changes, troubleshooting).",
       Component: AiCodeReviews,
     },
     {
-      title: "Self-Hosted Control",
-      benefit: "You own your customer data and run on your infrastructure.",
+      title: "Helpdesk & CRM",
+      benefit: "Unified inbox, tickets, macros, shortcuts, customer context, knowledge hub.",
       Component: RealtimeCodingPreviews,
     },
     {
-      title: "Holding AI Agent",
-      benefit: "Prevents silence by acknowledging customers if humans delay.",
+      title: "Orchestration & Assurance",
+      benefit: "Automatic team routing by topic. Holding AI if unattended; escalate to supervisor on prolonged delays.",
       Component: OneClickIntegrationsIllustration,
     },
   ]
