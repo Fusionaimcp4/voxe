@@ -19,7 +19,7 @@ const nextConfig = {
   // ✅ Image optimization
   images: {
     unoptimized: true,
-    domains: ['localhost', 'localboxs.com'],
+    domains: ['localhost', 'voxe.mcp4.ai'],
     formats: ['image/webp', 'image/avif'],
   },
 
@@ -67,7 +67,7 @@ const nextConfig = {
   experimental: {
     typedRoutes: false,
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'localboxs.com'],
+      allowedOrigins: ['localhost:3000', 'voxe.mcp4.ai'],
     },
     externalDir: true,
   },

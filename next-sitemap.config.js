@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: process.env.NEXT_PUBLIC_BASE_URL || 'https://localboxs.com',
+  siteUrl: process.env.NEXT_PUBLIC_BASE_URL || 'https://voxe.mcp4.ai',
   generateRobotsTxt: true,
   generateIndexSitemap: false,
   exclude: [
@@ -26,7 +26,7 @@ module.exports = {
       },
     ],
     additionalSitemaps: [
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'https://localboxs.com'}/sitemap.xml`,
+      `${process.env.NEXT_PUBLIC_BASE_URL || 'https://voxe.mcp4.ai'}/sitemap.xml`,
     ],
   },
   transform: async (config, path) => {
