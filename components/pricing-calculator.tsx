@@ -40,7 +40,7 @@ export function PricingCalculator() {
 
   const calculateSavings = () => {
     let currentCost = 0
-    let localboxsCost = 0
+    let VoxeCost = 0
 
     // Current provider costs (monthly)
     switch (currentProvider) {
@@ -58,14 +58,14 @@ export function PricingCalculator() {
     }
 
     // Voxe cost (estimated monthly)
-    localboxsCost = 50 // Fixed monthly fee for managed hosting
+    VoxeCost = 50 // Fixed monthly fee for managed hosting
 
-    const savings = currentCost - localboxsCost
+    const savings = currentCost - VoxeCost
     const savingsPercentage = ((savings / currentCost) * 100).toFixed(0)
 
     return {
       currentCost: Math.round(currentCost),
-      localboxsCost: Math.round(localboxsCost),
+      VoxeCost: Math.round(VoxeCost),
       savings: Math.round(savings),
       savingsPercentage
     }
@@ -183,7 +183,7 @@ export function PricingCalculator() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-300">With Voxe</p>
-                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${results.localboxsCost}</p>
+                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${results.VoxeCost}</p>
                     <p className="text-xs text-slate-600 dark:text-slate-400">per month</p>
                   </div>
                   <div className="text-right">

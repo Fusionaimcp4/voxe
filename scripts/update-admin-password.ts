@@ -18,14 +18,14 @@ async function updateAdminPassword() {
 
     // Update the admin user
     const updatedUser = await prisma.user.update({
-      where: { email: 'admin@localboxs.com' },
+      where: { email: 'admin@mcp4.ai' },
       data: {
         password: hashedPassword,
       },
     });
 
     console.log('✅ Admin password updated successfully!');
-    console.log(`📧 Email: admin@localboxs.com`);
+    console.log(`📧 Email: admin@mcp4.ai`);
     console.log(`🔑 Password: admin123`);
     console.log(`🆔 User ID: ${updatedUser.id}`);
     console.log(`👑 Role: ${updatedUser.role}`);

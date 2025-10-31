@@ -80,7 +80,7 @@ export default function TermsOfServicePage() {
 
           <h2>10. Contact</h2>
           <p>
-            Email: <a href="mailto:contact@localboxs.com">contact@localboxs.com</a>
+            Email: <a href="mailto:contact@mcp4.com">contact@mcp4.com</a>
           </p>
 
           <h2>11. Changes to Terms</h2>

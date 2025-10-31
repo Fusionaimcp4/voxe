@@ -48,10 +48,10 @@ async function migrateDemos() {
 
     // Create a default admin user for existing demos
     const adminUser = await prisma.user.upsert({
-      where: { email: 'admin@localboxs.com' },
+      where: { email: 'admin@mcp4.ai' },
       update: {},
       create: {
-        email: 'admin@localboxs.com',
+        email: 'admin@mcp4.ai',
         name: 'System Admin',
         company: 'LocalBox',
         role: 'SUPER_ADMIN',

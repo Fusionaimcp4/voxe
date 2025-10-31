@@ -107,10 +107,10 @@ export function renderDemoHTML(ctx: DemoCtx): string {
         </p>
       </div>
       <div class="btn-group">
-        <a href="https://localboxs.com/integration-process" class="btn btn-outline" target="_blank" rel="noopener noreferrer">
+        <a href="https://voxe.mcp4.ai/integration-process" class="btn btn-outline" target="_blank" rel="noopener noreferrer">
           See integration steps
         </a>
-        <a href="https://localboxs.com/cost-savings" class="btn btn-solid" target="_blank" rel="noopener noreferrer">
+        <a href="https://voxe.mcp4.ai/cost-savings" class="btn btn-solid" target="_blank" rel="noopener noreferrer">
           See cost-savings
         </a>
       </div>

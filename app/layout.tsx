@@ -10,7 +10,7 @@ import DashboardLayout from '@/components/dashboard-layout'
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: 'LocalBoxs - All-in-One Conversations Platform | AI-First Customer Support',
+  title: 'Voxe - All-in-One Conversations Platform | AI-First Customer Support',
   description:
     'Phone, SMS, WhatsApp, Email, Web Chat. AI answers 95% instantly. No per-seat or per-resolution fees. Self-hosted or managed. Your data, your control.',
   viewport: {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     apple: '/logos/boxlogo512x512.png',
   },
   openGraph: {
-    title: 'LocalBoxs - All-in-One Conversations Platform | AI-First Customer Support',
+    title: 'Voxe - All-in-One Conversations Platform | AI-First Customer Support',
     description: 'Phone, SMS, WhatsApp, Email, Web Chat. AI answers 95% instantly. No per-seat or per-resolution fees. Self-hosted or managed. Your data, your control.',
     images: ['/logos/boxlogo512x512.png'],
   },

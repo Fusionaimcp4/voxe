@@ -44,7 +44,7 @@ export function Header() {
             <span className="text-slate-900 dark:text-white text-lg sm:text-xl font-semibold flex items-center gap-1">
   <Image
     src="/logos/boxlogo512x512.png"
-    alt="LocalBoxs Logo"
+    alt="Voxe Logo"
     width={48}
     height={48}
     className="inline-block align-middle sm:w-5 sm:h-5"

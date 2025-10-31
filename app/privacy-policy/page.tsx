@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
 
           <h2>12. Contact Information</h2>
           <p>
-            Email: <a href="mailto:contact@localboxs.com">contact@localboxs.com</a>
+            Email: <a href="mailto:contact@mcp4.com">contact@mcp4.com</a>
             <br /> Address: Addis Ababa, Ethiopia (updateable)
           </p>
 

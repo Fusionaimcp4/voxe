@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
             price_data: {
               currency: 'usd',
               product_data: {
-                name: 'LocalBoxs Credits',
+                name: 'Voxe Credits',
                 description: `Top-up balance: $${amountUsd.toFixed(2)}`,
               },
               unit_amount: Math.round(amountUsd * 100),
