@@ -5,6 +5,7 @@ import { mergeKBIntoSkeleton, injectWebsiteLinksSection, CanonicalUrl } from '@/
 import { slugify } from '@/lib/slug';
 import { writeTextFile, readTextFileIfExists } from '@/lib/fsutils';
 import { promises as fs } from 'fs';
+import path from 'path';
 import crypto from 'crypto';
 
 export const runtime = "nodejs";
@@ -280,7 +281,8 @@ export async function POST(request: NextRequest) {
 
     if (payload.generateKB) {
       // Check if we should generate or reuse KB
-      systemMessageFile = `./public/system_messages/n8n_System_Message_${slug}.md`;
+      // Use absolute path to avoid permission issues
+      systemMessageFile = path.join(process.cwd(), 'public', 'system_messages', `n8n_System_Message_${slug}.md`);
       const publicPath = `/system-message/n8n_System_Message_${slug}`;
       
       const shouldRegenerate = payload.force || !(await isFileFresh(systemMessageFile));
@@ -296,7 +298,7 @@ export async function POST(request: NextRequest) {
         const kbMarkdown = await generateKBFromWebsite(cleanedText, payload.url);
         
         // Load skeleton template and merge
-        const skeletonPath = process.env.SKELETON_PATH || './data/templates/n8n_System_Message.md';
+        const skeletonPath = process.env.SKELETON_PATH || path.join(process.cwd(), 'data', 'templates', 'n8n_System_Message.md');
         const skeletonText = await readTextFileIfExists(skeletonPath);
         
         if (!skeletonText) {
@@ -315,8 +317,25 @@ export async function POST(request: NextRequest) {
           payload.canonicalUrls || []
         );
         
-        // Save the system message file
-        await writeTextFile(systemMessageFile, systemMessageWithLinks);
+        // Save the system message file - handle permission errors gracefully
+        try {
+          await writeTextFile(systemMessageFile, systemMessageWithLinks);
+        } catch (fileError: any) {
+          // Log permission error but don't fail the entire operation
+          // The KB generation succeeded, we just can't write the file
+          console.error(`⚠️ Failed to write system message file: ${fileError.message}`);
+          console.error(`⚠️ File path: ${systemMessageFile}`);
+          console.error(`⚠️ Error code: ${fileError.code}`);
+          
+          // If it's a permission error, provide helpful message
+          if (fileError.code === 'EACCES') {
+            console.error(`⚠️ Permission denied. Ensure the directory exists and is writable:`);
+            console.error(`⚠️   Directory: ${path.dirname(systemMessageFile)}`);
+            console.error(`⚠️   Fix with: chmod -R 755 ${path.dirname(systemMessageFile)}`);
+          }
+          
+          // Don't throw - KB generation succeeded, continue without file write
+        }
         
         // Parse knowledge base sections
         knowledgePreview = parseKnowledgeBase(finalSystemMessage);
@@ -336,8 +355,17 @@ export async function POST(request: NextRequest) {
             payload.canonicalUrls || []
           );
           
-          // Update the file with website links
-          await writeTextFile(systemMessageFile, systemMessageWithLinks);
+          // Update the file with website links - handle permission errors gracefully
+          try {
+            await writeTextFile(systemMessageFile, systemMessageWithLinks);
+          } catch (fileError: any) {
+            console.error(`⚠️ Failed to update system message file: ${fileError.message}`);
+            if (fileError.code === 'EACCES') {
+              console.error(`⚠️ Permission denied. Ensure the directory is writable:`);
+              console.error(`⚠️   Directory: ${path.dirname(systemMessageFile)}`);
+            }
+            // Don't throw - continue without file update
+          }
           
           knowledgePreview = parseKnowledgeBase(systemMessageWithLinks);
           const stats = await fs.stat(systemMessageFile);
