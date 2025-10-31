@@ -30,7 +30,9 @@ console.log('SMTP Config:', {
 
 // Function to send an email
 export async function sendEmail(options: EmailOptions) {
-  const from = process.env.EMAIL_FROM || 'Localbox <no-reply@localboxs.com>';
+  const appName = process.env.APP_NAME || 'Voxe';
+  const emailDomain = process.env.EMAIL_DOMAIN || 'mcp4.ai';
+  const from = process.env.EMAIL_FROM || `${appName} <no-reply@${emailDomain}>`;
 
   await transporter.sendMail({
     from,

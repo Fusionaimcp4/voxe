@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
     const { rawToken, expiresAt } = await issueVerificationToken(user.id, 'email_verify', VERIFICATION_TOKEN_TTL_MS);
 
     // Send verification email
-    const verificationLink = `${process.env.APP_BASE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${rawToken}&uid=${user.id}`;
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const verificationLink = `${baseUrl}/api/auth/verify-email?token=${rawToken}&uid=${user.id}`;
     const expiryHours = VERIFICATION_TOKEN_TTL_MS / (1000 * 60 * 60);
     const emailHtml = await loadEmailTemplate('verify-email', {
       userName: user.name || 'there',
@@ -73,9 +74,10 @@ export async function POST(request: NextRequest) {
       currentYear: new Date().getFullYear().toString(),
     });
 
+    const appName = process.env.APP_NAME || 'Voxe';
     await sendEmail({
       to: user.email,
-      subject: 'Verify Your Email Address for Localbox',
+      subject: `Verify Your Email Address for ${appName}`,
       html: emailHtml,
     });
 

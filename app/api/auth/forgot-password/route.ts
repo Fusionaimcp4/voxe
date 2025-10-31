@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
     const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
     const { rawToken, expiresAt } = await issueVerificationToken(user.id, 'password_reset', RESET_TOKEN_TTL_MS);
 
-    const resetLink = `${process.env.APP_BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${rawToken}&uid=${user.id}`;
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const resetLink = `${baseUrl}/auth/reset-password?token=${rawToken}&uid=${user.id}`;
     const expiryMinutes = RESET_TOKEN_TTL_MS / (1000 * 60);
     const emailHtml = await loadEmailTemplate('reset-password', {
       userName: user.name || 'there',
@@ -69,9 +70,10 @@ export async function POST(request: NextRequest) {
       currentYear: new Date().getFullYear().toString(),
     });
 
+    const appName = process.env.APP_NAME || 'Voxe';
     await sendEmail({
       to: user.email,
-      subject: 'Reset Your Localbox Password',
+      subject: `Reset Your ${appName} Password`,
       html: emailHtml,
     });
 

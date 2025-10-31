@@ -1,9 +1,9 @@
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: localboxs_postgres
+    container_name: voxe_postgres
     environment:
-      POSTGRES_DB: localboxs
+      POSTGRES_DB: voxe
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
@@ -12,13 +12,13 @@ services:
       - "5433:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d localboxs"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d voxe"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   app:
-    container_name: localboxs_app
+    container_name: voxe_app
     build:
       context: .
       dockerfile: Dockerfile.prod
@@ -68,6 +68,8 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       SMTP_SECURE: ${SMTP_SECURE}
+      APP_NAME: ${APP_NAME}
+      EMAIL_DOMAIN: ${EMAIL_DOMAIN}
       APP_BASE_URL: ${APP_BASE_URL}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}

@@ -349,7 +349,10 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        // Ensure secure cookies when using HTTPS (required for __Secure- prefix)
+        secure: process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.startsWith('https://'),
+        // Note: Not setting domain explicitly - let Next.js handle it automatically
+        // Setting domain explicitly can cause cookie issues with subdomains
       },
     },
   },

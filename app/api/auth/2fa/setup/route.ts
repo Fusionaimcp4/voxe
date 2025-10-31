@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const secret = authenticator.generateSecret();
 
     // Generate the OTPAuth URL for the QR code
-    const appName = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).hostname : 'Localbox';
+    const appName = process.env.APP_NAME || (process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).hostname : 'Voxe');
     const otpauthUrl = authenticator.keyuri(userEmail, appName, secret);
 
     // Generate QR code data URL
