@@ -87,9 +87,11 @@
     CMD wget -qO- http://localhost:3000/api/health || exit 1
   
     # Ensure writable app data folders for nextjs user
+USER root
 RUN mkdir -p public/system_messages public/demos data/registry \
-&& chown -R nextjs:nodejs public/system_messages public/demos data/registry \
-&& chmod -R 775 public/system_messages public/demos data/registry
+    && chown -R nextjs:nodejs public/system_messages public/demos data/registry \
+    && chmod -R 775 public/system_messages public/demos data/registry
+USER nextjs
 
   # Default start command (for production)
   CMD ["npm", "start"]
