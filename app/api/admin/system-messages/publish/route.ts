@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { writeTextFile } from '@/lib/fsutils';
 import { logger } from '@/lib/logger';
 import path from 'path';
+import { promises as fs } from 'fs';
 
 // POST /api/admin/system-messages/publish - Publish new version
 export async function POST(request: NextRequest) {
@@ -75,9 +76,38 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Update the template file
-    const templatePath = path.join(process.cwd(), 'data/templates/n8n_System_Message.md');
-    await writeTextFile(templatePath, content);
+    // Update the template file - try multiple possible locations
+    const possiblePaths = [
+      path.join(process.cwd(), 'data/templates/n8n_System_Message.md'),
+      path.join(process.cwd(), 'public/system_messages/n8n_System_Message.md'),
+      path.join(process.cwd(), 'public', 'system_messages', 'n8n_System_Message.md'),
+    ];
+    
+    // Try to write to the first existing directory, or create data/templates if neither exists
+    let templatePath = possiblePaths[0]; // Default to data/templates
+    
+    // Check if public/system_messages exists, prefer that location
+    try {
+      const publicPath = possiblePaths[1];
+      const publicDir = path.dirname(publicPath);
+      await fs.access(publicDir);
+      templatePath = publicPath; // Use public/system_messages if it exists
+    } catch {
+      // public/system_messages doesn't exist, use data/templates (will be created)
+    }
+    
+    try {
+      await writeTextFile(templatePath, content);
+      logger.info(`Template file updated at: ${templatePath}`);
+    } catch (fileError) {
+      // Log file write error but don't fail the entire operation
+      // The database version is already created and published
+      logger.error('Failed to update template file (version still published in database)', {
+        path: templatePath,
+        error: fileError instanceof Error ? fileError.message : String(fileError)
+      });
+      // Don't throw - database operations succeeded, file write is secondary
+    }
 
     logger.info(`Admin ${session.user.email} published system message version`, {
       templateId: template.id,
