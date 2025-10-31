@@ -137,7 +137,7 @@ async function main() {
     const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl);
 
     console.error('🎨 Rendering demo HTML...');
-    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai';
+    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatwoot.mcp4.ai';
     const demoHTML = renderDemoHTML({
       businessName,
       slug,

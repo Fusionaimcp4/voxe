@@ -1,7 +1,7 @@
 {
-  "name": "LocalBoxs - Unlimited Agents, Self-Hosted AI Support",
-  "short_name": "LocalBoxs",
-  "description": "LocalBoxs replaces Intercom/Zendesk with a self-hosted AI-first support system. Unlimited agents, unlimited AI resolutions, one-time setup, you own your data.",
+  "name": "voxe - Unlimited Agents, Self-Hosted AI Support",
+  "short_name": "vox",
+  "description": "voxe replaces Intercom/Zendesk with a self-hosted AI-first support system. Unlimited agents, unlimited AI resolutions, one-time setup, you own your data.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -19,7 +19,7 @@
     },
     {
       "src": "/logos/boxlogo512x512.png",
-      "sizes": "512x512",
+      "sizes": "48x48",
       "type": "image/png"
     }
   ]

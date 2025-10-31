@@ -8,7 +8,7 @@ module.exports = {
     '/api/*',
     '/demo/*',
     '/system-message/*',
-    '/userdemo',
+    '/dashboard/userdemo',
     '/contact?*'
   ],
   robotsTxtOptions: {
@@ -21,7 +21,7 @@ module.exports = {
           '/api/',
           '/demo/',
           '/system-message/',
-          '/userdemo'
+          '/dashboard/userdemo'
         ],
       },
     ],

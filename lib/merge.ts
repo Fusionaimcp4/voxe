@@ -3,16 +3,17 @@ export function mergeKBIntoSkeleton(skeleton: string, kb: string): string {
     throw new Error('Empty KB provided');
   }
   
-  const hasSection = /##\s*Knowledge Base/i.test(skeleton);
+  // More specific regex to match only "## Business Knowledge" (not "## Knowledge Base Usage Guidelines")
+  const hasSection = /^##\s*Business Knowledge$/m.test(skeleton);
   
   if (hasSection) {
     return skeleton.replace(
-      /##\s*Knowledge Base[\s\S]*?(?=(\n#|\n##|\n$))/i,
-      `## Knowledge Base\n\n${kb}\n\n`
+      /^##\s*Business Knowledge[\s\S]*?(?=(\n#|\n##|\n$))/m,
+      `## Business Knowledge\n\n${kb}\n\n`
     );
   }
   
-  return `${skeleton}\n\n## Knowledge Base\n\n${kb}\n`;
+  return `${skeleton}\n\n## Business Knowledge\n\n${kb}\n`;
 }
 
 export interface CanonicalUrl {
@@ -36,16 +37,16 @@ export function injectWebsiteLinksSection(
     // Replace existing section
     return systemMessage.replace(existingSectionRegex, websiteLinksSection);
   } else {
-    // Find the best insertion point after Knowledge Base section
-    const kbSectionRegex = /##\s*Knowledge Base[\s\S]*?(?=(\n#|\n##|\n$))/i;
+    // Find the best insertion point after Business Knowledge section
+    const kbSectionRegex = /^##\s*Business Knowledge[\s\S]*?(?=(\n#|\n##|\n$))/m;
     const kbMatch = systemMessage.match(kbSectionRegex);
     
     if (kbMatch) {
-      // Insert after Knowledge Base section
+      // Insert after Business Knowledge section
       const kbEndIndex = kbMatch.index! + kbMatch[0].length;
       return systemMessage.slice(0, kbEndIndex) + '\n\n' + websiteLinksSection + systemMessage.slice(kbEndIndex);
     } else {
-      // Append at the end if no Knowledge Base section found
+      // Append at the end if no Business Knowledge section found
       return systemMessage + '\n\n' + websiteLinksSection;
     }
   }

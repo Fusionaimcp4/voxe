@@ -6,18 +6,27 @@ import { createWebsiteInbox } from '@/lib/chatwoot';
 import { renderDemoHTML } from '@/lib/renderDemo';
 import { slugify } from '@/lib/slug';
 import { writeTextFile, readTextFileIfExists, atomicJSONUpdate } from '@/lib/fsutils';
+import { getPublishedSystemMessageTemplate } from '@/lib/system-message-template';
 import { duplicateWorkflowViaWebhook } from '@/lib/n8n-webhook';
 import { createAgentBot, assignBotToInbox } from '@/lib/chatwoot_admin';
+import { n8nCredentialService } from '@/lib/n8n-credentials';
+import { ensureFusionSubAccount } from '@/lib/fusion-sub-accounts';
 import { promises as fs } from 'fs';
 import crypto from 'crypto';
 import path from 'path';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { canPerformAction, trackUsage } from '@/lib/usage-tracking';
 
 export const runtime = "nodejs";
 
 // Generate slug with hash for uniqueness (same as inspect API)
 function generateSlugWithHash(url: string): string {
-  const hostname = new URL(url).hostname.replace(/^www\./, '');
-  const urlHash = crypto.createHash('md5').update(url).digest('hex').substring(0, 8);
+  // Normalize URL for consistent hashing
+  const normalizedUrl = url.toLowerCase().replace(/\/$/, ''); // Remove trailing slash, lowercase
+  const hostname = new URL(normalizedUrl).hostname.replace(/^www\./, '');
+  const urlHash = crypto.createHash('md5').update(normalizedUrl).digest('hex').substring(0, 8);
   return `${slugify(hostname)}-${urlHash}`;
 }
 
@@ -78,7 +87,44 @@ interface DemoRegistry {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get the current user session
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
+    const userId = session.user.id;
     const payload: CreateDemoPayload = await request.json();
+    
+    // Ensure Fusion sub-account exists before demo creation
+    // This works for both email/password users and OAuth users
+    console.log(`🔄 [Demo Create] Ensuring Fusion sub-account for user: ${userId}`);
+    await ensureFusionSubAccount(userId);
+    
+    // Check tier limits before proceeding
+    const usageCheck = await canPerformAction(userId, 'create_demo');
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Tier limit exceeded',
+          message: usageCheck.reason,
+          usage: usageCheck.usage,
+          upgradeRequired: true
+        },
+        { status: 403 }
+      );
+    }
     
     // Validate input
     if (!payload.url) {
@@ -116,8 +162,8 @@ export async function POST(request: NextRequest) {
     // Check for existing KB file from user preview
     const previewSystemMessageFile = `./public/system_messages/n8n_System_Message_${slug}.md`;
     
-    let finalSystemMessage: string;
-    let systemMessageFile: string;
+    let finalSystemMessage: string = '';
+    let systemMessageFile: string = previewSystemMessageFile;
     let reusingPreview = false;
 
     // Check if we have a fresh preview file to reuse
@@ -129,6 +175,8 @@ export async function POST(request: NextRequest) {
       const previewContent = await readTextFileIfExists(previewSystemMessageFile);
       if (previewContent) {
         finalSystemMessage = previewContent;
+        // Replace ${businessName} placeholder even in reused files
+        finalSystemMessage = finalSystemMessage.replace(/\$\{businessName\}/g, businessName);
         systemMessageFile = previewSystemMessageFile;
         reusingPreview = true;
       }
@@ -144,19 +192,14 @@ export async function POST(request: NextRequest) {
       // Step 2: Generate knowledge base
       const kbMarkdown = await generateKBFromWebsite(cleanedText, payload.url);
 
-      // Step 3: Load skeleton template
-      const skeletonPath = process.env.SKELETON_PATH || './data/templates/n8n_System_Message.md';
-      const skeletonText = await readTextFileIfExists(skeletonPath);
-      
-      if (!skeletonText) {
-        return NextResponse.json(
-          { error: 'Skeleton template not found' },
-          { status: 500 }
-        );
-      }
+      // Step 3: Load skeleton template from database or file
+      const skeletonText = await getPublishedSystemMessageTemplate();
 
       // Step 4: Merge KB into skeleton
       finalSystemMessage = mergeKBIntoSkeleton(skeletonText, kbMarkdown);
+
+      // Step 4.5: Replace ${businessName} placeholder with actual business name
+      finalSystemMessage = finalSystemMessage.replace(/\$\{businessName\}/g, businessName);
 
       // Step 5: Set system message file path
       systemMessageFile = previewSystemMessageFile; // Use hashed naming
@@ -175,15 +218,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 6: Create demo URL and Chatwoot inbox
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : `http://${process.env.DEMO_DOMAIN || 'localhost:3000'}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://${process.env.DEMO_DOMAIN || 'localhost:3000'}`);
     const demoUrl = `${baseUrl}/demo/${slug}`;
     
-    const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl);
+    const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl, userId);
 
     // Step 7: Render demo HTML
-    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai';
+    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatwoot.mcp4.ai';
     const demoHTML = renderDemoHTML({
       businessName,
       slug,
@@ -199,23 +241,101 @@ export async function POST(request: NextRequest) {
     const demoIndexPath = path.join(demoRoot, slug, 'index.html');
     await writeTextFile(demoIndexPath, demoHTML);
 
-    // Step 9: Setup Chatwoot bot and trigger n8n workflow duplication
+    // Step 9: Save demo to database FIRST (before n8n webhook)
+    let demo;
+    try {
+      demo = await prisma.demo.create({
+        data: {
+          userId,
+          slug,
+          businessName,
+          businessUrl: payload.url,
+          demoUrl,
+          systemMessageFile: `/system-message/n8n_System_Message_${slug}`,
+          chatwootInboxId: inbox_id,
+          chatwootWebsiteToken: website_token,
+          primaryColor: payload.primaryColor || '#7ee787',
+          secondaryColor: payload.secondaryColor || '#f4a261',
+          logoUrl: payload.logoUrl
+        }
+      });
+
+      // Create associated workflow record
+      await prisma.workflow.create({
+        data: {
+          userId,
+          demoId: demo.id,
+          n8nWorkflowId: null, // Will be updated by n8n workflow duplicator
+          status: 'ACTIVE',
+          configuration: {
+            aiModel: 'gpt-4o-mini',
+            confidenceThreshold: 0.8,
+            escalationRules: [],
+            externalIntegrations: []
+          }
+        }
+      });
+
+      // Create system message record
+      await prisma.systemMessage.create({
+        data: {
+          demoId: demo.id,
+          content: finalSystemMessage,
+          version: 1,
+          isActive: true
+        }
+      });
+
+      console.log(`✅ Demo saved to database: ${demo.id}`);
+      
+      // Track usage
+      await trackUsage(userId, 'demo_created');
+    } catch (dbError) {
+      console.error('❌ Failed to save demo to database:', dbError);
+      console.error('❌ Database error details:', {
+        message: dbError instanceof Error ? dbError.message : 'Unknown error',
+        code: (dbError as any)?.code,
+        meta: (dbError as any)?.meta
+      });
+      // Continue with demo creation even if database save fails
+    }
+
+    // Step 10: Setup Chatwoot bot and trigger n8n workflow duplication
     let botId: number | string | undefined;
     let botAccessToken: string | undefined;
-    let workflowDuplicationResult: { success: boolean; error?: string } | undefined;
+    let workflowDuplicationResult: { success: boolean; error?: string; workflowId?: string } | undefined;
 
     try {
       // Create Chatwoot Agent Bot
       console.log(`Creating agent bot for ${businessName}...`);
-      const bot = await createAgentBot(businessName);
+      const bot = await createAgentBot(businessName, userId);
       botId = bot.id;
       botAccessToken = bot.access_token;
 
       // Assign bot to inbox
-      try {
-        await assignBotToInbox(inbox_id, botId);
-      } catch (assignError) {
-        console.warn(`Bot assignment failed:`, assignError);
+      if (botId) {
+        try {
+          await assignBotToInbox(inbox_id, botId, userId);
+        } catch (assignError) {
+          console.warn(`Bot assignment failed:`, assignError);
+        }
+      }
+
+      // Update workflow with bot information
+      if (demo) {
+        await prisma.workflow.updateMany({
+          where: { demoId: demo.id },
+          data: {
+            configuration: {
+              aiModel: 'gpt-4o-mini',
+              confidenceThreshold: 0.8,
+              escalationRules: [],
+              externalIntegrations: [],
+              chatwootAgentBotId: botId || null,
+              chatwootAgentBotAccessToken: botAccessToken || null
+            }
+          }
+        });
       }
 
       // Trigger n8n workflow duplication
@@ -225,6 +345,32 @@ export async function POST(request: NextRequest) {
           botAccessToken,
           finalSystemMessage
         );
+
+        // If workflow duplication succeeded and we got a workflow ID, save it first
+        if (workflowDuplicationResult.success && workflowDuplicationResult.workflowId && demo) {
+          try {
+            // Update the workflow record with the n8n workflow ID FIRST
+            await prisma.workflow.updateMany({
+              where: {
+                userId,
+                demoId: demo.id,
+                n8nWorkflowId: null
+              },
+              data: {
+                n8nWorkflowId: workflowDuplicationResult.workflowId
+              }
+            });
+            
+            console.log(`✅ Workflow ${workflowDuplicationResult.workflowId} saved to database`);
+            
+            // Credential update will happen in /api/workflow/update-id endpoint
+            // This follows the same pattern as system message updates
+            
+          } catch (credentialError) {
+            console.error('Failed to save workflow ID:', credentialError);
+            // Don't fail the entire demo creation if workflow save fails
+          }
+        }
       }
     } catch (e: any) {
       console.error("Auto-create bot failed:", e);
@@ -305,7 +451,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 12: Return success response (simplified for user-facing API)
+    // Database save already completed in Step 9
+
+    // Step 13: Return success response (simplified for user-facing API)
     const response = {
       demo_url: demoUrl,
       system_message_file: `/system-message/n8n_System_Message_${slug}`

@@ -4,8 +4,10 @@ import { ContactModal } from "./contact-modal"
 
 export function CTASection() {
   return (
-    <section className="w-full pt-20 md:pt-60 lg:pt-60 pb-10 md:pb-20 px-5 relative flex flex-col justify-center items-center overflow-visible">
-      <div className="absolute inset-0 top-[-90px]">
+    <section className="w-full pt-20 md:pt-40 lg:pt-50 pb-10 md:pb-20 px-5 relative flex flex-col justify-center items-center overflow-visible bg-white dark:bg-slate-900">
+      {/* Very subtle background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900" />
+      <div className="absolute inset-0 top-[-90px] opacity-20">
         <svg
           className="w-full h-full"
           viewBox="0 0 1388 825"
@@ -104,29 +106,29 @@ export function CTASection() {
       </div>
       <div className="relative z-10 flex flex-col justify-start items-center gap-9 max-w-4xl mx-auto">
         <div className="flex flex-col justify-start items-center gap-4 text-center">
-          <h2 className="text-foreground text-4xl md:text-5xl lg:text-[68px] font-semibold leading-tight md:leading-tight lg:leading-[76px] break-words max-w-[435px]">
-          Own the stack. Keep the savings.
+          <h2 className="text-slate-900 dark:text-white text-4xl md:text-5xl lg:text-6xl font-bold leading-tight md:leading-tight lg:leading-[70px] break-words max-w-4xl">
+          Own your support stack. Keep the savings.
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base font-medium leading-[18.20px] md:leading-relaxed break-words max-w-2xl">
-          See a demo chat tailored to your business in under a minute.
+          <p className="text-slate-600 dark:text-slate-300 text-lg md:text-xl font-medium leading-relaxed break-words max-w-3xl">
+          Stop paying per agent. Stop paying per conversation. Start owning your customer relationships.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Link href="/userdemo">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <ContactModal>
             <Button
-              className="px-[30px] py-2 bg-secondary text-secondary-foreground text-base font-medium leading-6 rounded-[99px] shadow-[0px_0px_0px_4px_rgba(255,255,255,0.13)] hover:bg-secondary/90 transition-all duration-200"
+              className="px-10 py-6 bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-200"
               size="lg"
             >
-              See a demo
+              Book a Free Demo
             </Button>
-          </Link>
-          <Link href="/contact">
+          </ContactModal>
+          <Link href="/dashboard/userdemo">
             <Button
-              variant="ghost"
-              className="px-[30px] py-2 text-secondary-foreground text-base font-medium leading-6 rounded-[99px] hover:bg-secondary/10 transition-all duration-200"
+              variant="outline"
+              className="px-10 py-6 border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg font-semibold rounded-xl"
               size="lg"
             >
-              Start a pilot
+              Start a Pilot
             </Button>
           </Link>
         </div>

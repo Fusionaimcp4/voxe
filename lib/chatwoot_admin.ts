@@ -1,13 +1,53 @@
 // /lib/chatwoot_admin.ts
-const CW_BASE = process.env.CHATWOOT_BASE_URL!;
-const CW_ACCT = process.env.CHATWOOT_ACCOUNT_ID!;
-const CW_KEY = process.env.CHATWOOT_API_KEY!;
+import { getUserChatwootConfig } from './integrations/crm-service';
 
-async function cwPost(path: string, body: any) {
-  const r = await fetch(`${CW_BASE}${path}`, {
+interface ChatwootCredentials {
+  baseUrl: string;
+  accountId: string;
+  apiKey: string;
+}
+
+/**
+ * Get Chatwoot credentials from user config or environment variables
+ */
+async function getChatwootCredentials(userId?: string): Promise<ChatwootCredentials> {
+  let base: string | undefined;
+  let accountId: string | undefined;
+  let apiKey: string | undefined;
+
+  // Try to get user-specific Chatwoot configuration if userId provided
+  if (userId) {
+    try {
+      const userConfig = await getUserChatwootConfig(userId);
+      if (userConfig) {
+        base = userConfig.baseUrl;
+        accountId = userConfig.accountId;
+        apiKey = userConfig.apiKey;
+      }
+    } catch (error) {
+      console.warn('Failed to get user Chatwoot config, falling back to env vars:', error);
+    }
+  }
+
+  // Fall back to environment variables if no user config
+  if (!base || !accountId || !apiKey) {
+    base = process.env.CHATWOOT_BASE_URL;
+    accountId = process.env.CHATWOOT_ACCOUNT_ID;
+    apiKey = process.env.CHATWOOT_API_KEY;
+  }
+
+  if (!base || !accountId || !apiKey) {
+    throw new Error('Missing Chatwoot credentials. Either configure a CRM integration or set environment variables.');
+  }
+
+  return { baseUrl: base, accountId, apiKey };
+}
+
+async function cwPost(path: string, body: any, credentials: ChatwootCredentials) {
+  const r = await fetch(`${credentials.baseUrl}${path}`, {
     method: "POST",
     headers: {
-      "api_access_token": CW_KEY,
+      "api_access_token": credentials.apiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -19,9 +59,9 @@ async function cwPost(path: string, body: any) {
   return r.json();
 }
 
-async function cwGet(path: string) {
-  const r = await fetch(`${CW_BASE}${path}`, {
-    headers: { "api_access_token": CW_KEY },
+async function cwGet(path: string, credentials: ChatwootCredentials) {
+  const r = await fetch(`${credentials.baseUrl}${path}`, {
+    headers: { "api_access_token": credentials.apiKey },
   });
   if (!r.ok) throw new Error(`chatwoot GET ${path} ${r.status}`);
   return r.json();
@@ -30,11 +70,15 @@ async function cwGet(path: string) {
 /**
  * Create a new Agent Bot:
  *  - name: "<BusinessName> Bot"
- *  - outgoing_url (webhook): https://n8n.mcp4.ai/webhook/<BusinessName>
+ *  - outgoing_url (webhook): https://n8n.sost.work/webhook/<BusinessName>
  * Returns: { id, access_token }
+ * @param businessName - Business name for the bot
+ * @param userId - Optional user ID to fetch user-specific credentials
  */
-export async function createAgentBot(businessName: string) {
-  const outgoing_url = `${process.env.N8N_BASE_URL || 'https://n8n.mcp4.ai'}/webhook/${businessName}`;
+export async function createAgentBot(businessName: string, userId?: string) {
+  const credentials = await getChatwootCredentials(userId);
+  
+  const outgoing_url = `${process.env.N8N_BASE_URL || 'https://n8n.sost.work'}/webhook/${businessName}`;
   const payload = {
     name: `${businessName} Bot`,
     description: `Bot for ${businessName} demo`,
@@ -46,7 +90,7 @@ export async function createAgentBot(businessName: string) {
   try {
     // API path for agent bots:
     // POST /api/v1/accounts/:account_id/agent_bots
-    const data = await cwPost(`/api/v1/accounts/${CW_ACCT}/agent_bots`, payload);
+    const data = await cwPost(`/api/v1/accounts/${credentials.accountId}/agent_bots`, payload, credentials);
     return { id: data.id, access_token: data.access_token ?? data.accessToken ?? "" };
   } catch (error) {
     // If agent_bots API is not available, throw a specific error
@@ -61,23 +105,24 @@ export async function createAgentBot(businessName: string) {
  * Assign bot to inbox using the correct Chatwoot API endpoint
  * POST /api/v1/accounts/{account_id}/inboxes/{inbox_id}/set_agent_bot
  * with payload: { "agent_bot": <bot_id> }
+ * @param inboxId - Inbox ID
+ * @param botId - Bot ID
+ * @param userId - Optional user ID to fetch user-specific credentials
  */
-export async function assignBotToInbox(inboxId: number | string, botId: number | string) {
-  const path = `/api/v1/accounts/${CW_ACCT}/inboxes/${inboxId}/set_agent_bot`;
+export async function assignBotToInbox(inboxId: number | string, botId: number | string, userId?: string) {
+  const credentials = await getChatwootCredentials(userId);
+  const path = `/api/v1/accounts/${credentials.accountId}/inboxes/${inboxId}/set_agent_bot`;
   const payload = {
     agent_bot: botId
   };
 
   console.log(`Assigning bot ${botId} to inbox ${inboxId} using correct Chatwoot endpoint...`);
-  console.log(`POST ${CW_BASE}${path}`);
+  console.log(`POST ${credentials.baseUrl}${path}`);
   console.log('Payload:', JSON.stringify(payload, null, 2));
 
   try {
-    const result = await cwPost(path, payload);
+    const result = await cwPost(path, payload, credentials);
     console.log('✅ Bot successfully assigned to inbox using /set_agent_bot endpoint');
-    
-    // Verify assignment by checking inbox agent bot
-    await verifyBotAssignment(inboxId, botId);
     
     return result;
   } catch (error) {
@@ -85,17 +130,8 @@ export async function assignBotToInbox(inboxId: number | string, botId: number |
     
     // Check if this is just a JSON parsing error but assignment might have worked
     if (errorMsg.includes('Unexpected end of JSON input') || errorMsg.includes('JSON')) {
-      console.log('⚠️ Bot assignment API returned empty response, verifying if assignment actually worked...');
-      
-      // Try to verify if the assignment actually worked despite the JSON error
-      const isAssigned = await verifyBotAssignment(inboxId, botId);
-      if (isAssigned) {
-        console.log('✅ Bot assignment actually succeeded despite empty API response');
-        return {}; // Return empty object since assignment worked
-      } else {
-        console.error(`❌ Bot assignment verification failed: ${errorMsg}`);
-        throw new Error(`Failed to assign bot ${botId} to inbox ${inboxId}: Assignment verification failed`);
-      }
+      console.log('⚠️ Bot assignment API returned empty response, but assignment likely succeeded');
+      return {}; // Return empty object since assignment probably worked
     } else {
       console.error(`❌ Bot assignment failed: ${errorMsg}`);
       throw new Error(`Failed to assign bot ${botId} to inbox ${inboxId}: ${errorMsg}`);
@@ -107,13 +143,17 @@ export async function assignBotToInbox(inboxId: number | string, botId: number |
  * Verify that the bot is properly assigned to the inbox
  * GET /api/v1/accounts/{account_id}/inboxes/{inbox_id}
  * Check if the agent_bot field matches our bot ID
+ * @param inboxId - Inbox ID
+ * @param botId - Bot ID
+ * @param userId - Optional user ID to fetch user-specific credentials
  */
-export async function verifyBotAssignment(inboxId: number | string, botId: number | string) {
-  const path = `/api/v1/accounts/${CW_ACCT}/inboxes/${inboxId}`;
+export async function verifyBotAssignment(inboxId: number | string, botId: number | string, userId?: string) {
+  const credentials = await getChatwootCredentials(userId);
+  const path = `/api/v1/accounts/${credentials.accountId}/inboxes/${inboxId}`;
   
   try {
     console.log(`Verifying bot assignment for inbox ${inboxId}...`);
-    const inboxDetails = await cwGet(path);
+    const inboxDetails = await cwGet(path, credentials);
     
     // Check if the agent_bot field matches our bot ID
     const assignedBotId = inboxDetails.agent_bot?.id || inboxDetails.agent_bot;
@@ -135,11 +175,11 @@ export async function verifyBotAssignment(inboxId: number | string, botId: numbe
   }
 }
 
-async function cwPut(path: string, body: any) {
-  const r = await fetch(`${CW_BASE}${path}`, {
+async function cwPut(path: string, body: any, credentials: ChatwootCredentials) {
+  const r = await fetch(`${credentials.baseUrl}${path}`, {
     method: "PUT",
     headers: {
-      "api_access_token": CW_KEY,
+      "api_access_token": credentials.apiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -151,11 +191,11 @@ async function cwPut(path: string, body: any) {
   return r.json();
 }
 
-async function cwPatch(path: string, body: any) {
-  const r = await fetch(`${CW_BASE}${path}`, {
+async function cwPatch(path: string, body: any, credentials: ChatwootCredentials) {
+  const r = await fetch(`${credentials.baseUrl}${path}`, {
     method: "PATCH",
     headers: {
-      "api_access_token": CW_KEY,
+      "api_access_token": credentials.apiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),

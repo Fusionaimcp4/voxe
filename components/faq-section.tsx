@@ -6,24 +6,36 @@ import { ChevronDown } from "lucide-react"
 
 const faqData = [
   {
-    q: "How is pricing structured?",
-    a: "One-time setup fee, unlimited agents and AI usage, no recurring per-seat or per-resolution charges.",
+    q: "Is WhatsApp Business available in Ethiopia?",
+    a: "Yes, we support WhatsApp Business API integration for Ethiopian businesses. We help you get approved and set up the integration.",
   },
   {
-    q: "Do I own my data?",
-    a: "Yes, your instance is self-hosted, giving you full data ownership and compliance control.",
+    q: "How long does onboarding take?",
+    a: "Basic setup takes 2-3 days. Full configuration with AI training takes 1-2 weeks. We provide free onboarding and training.",
   },
   {
-    q: "What happens if humans don't reply?",
-    a: "The Holding AI Agent acknowledges the user and can notify supervisors automatically.",
+    q: "What training and support do you provide?",
+    a: "Free onboarding, video tutorials, documentation, and email support. Optional training sessions available. Support team in Ethiopia.",
   },
   {
-    q: "How does this differ from Intercom Fin or Zendesk bots?",
-    a: "We provide unlimited AI usage, no per-resolution costs, and self-hosting so you're not locked in.",
+    q: "Where can I host my data?",
+    a: "Your choice - our managed hosting in Ethiopia/Kenya, or your own infrastructure. We help you choose the best option for your needs.",
   },
   {
-    q: "Is reporting included?",
-    a: "Yes, full SLA and performance analytics are inherited from Chatwoot dashboards.",
+    q: "What languages do you support?",
+    a: "Amharic, English, and 20+ other languages. AI responses adapt to customer language automatically.",
+  },
+  {
+    q: "Can I migrate from my current system?",
+    a: "Yes, we help import contacts, conversation history, and configurations from most platforms. Migration is included in onboarding.",
+  },
+  {
+    q: "What happens if I want to leave?",
+    a: "Export all your data anytime. No contracts, no penalties, no lock-in. We believe in earning your business every day.",
+  },
+  {
+    q: "Do you offer custom integrations?",
+    a: "Yes, we can integrate with your existing CRM, ERP, or other business systems. Custom integrations are included in our plans.",
   },
 ]
 

@@ -1,133 +1,108 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ========================================================
+# 🧠 Voxe / Fusion Production .gitignore
+# Cleaned and unified for Next.js + Node + Prisma + Docker
+# ========================================================
 
-# dependencies
-/node_modules
-/.pnp
+# ─────────────── Dependencies ───────────────
+node_modules/
+.pnp
 .pnp.js
+.yarn/
+.yarnrc.yml
+.yarn-integrity
 .yarn/install-state.gz
 
-# testing
-/coverage
+# ─────────────── Build Outputs ───────────────
+.next/
+out/
+build/
+dist/
+.nuxt/
+.storybook-out/
+.out/
+.vercel/
+.netlify/
+.cache/
+.parcel-cache/
+temp/
+tmp/
+*.tmp
 
-# next.js
-/.next/
-/out/
+# ─────────────── Environment & Config ───────────────
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env*.local
+!.env.example
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# ─────────────── Logs & Debug ───────────────
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
-.env
-.env.local
-!.env.example
+# ─────────────── Prisma & Database ───────────────
+prisma/migrations/dev.db*
+*.db
+*.sqlite
+*.sqlite3
+/lib/generated/prisma
 
-# vercel
-.vercel
+# ─────────────── Data / Temporary ───────────────
+data/
+tests/
+todo/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# ─────────────── Dynamic Content ───────────────
+public/system_messages/
+public/demos/
 
-# IDE
+# ─────────────── IDE & Editor ───────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS
+# ─────────────── OS & Misc ───────────────
+.DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Logs
-logs
-*.log
+# ─────────────── Security / Secrets ───────────────
+secrets/
+*.pem
+*.key
+*.crt
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# ─────────────── Docker & Deployment ───────────────
+.docker/
+docker-compose.override.yml
+backups/
+ssl/
+*.tar.gz
 
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
+# ─────────────── Optional Tool Caches ───────────────
 .eslintcache
-
-# Microbundle cache
-.rpt2_cache/
+.rpt2_cache*/
+.rts2_cache_*/
+.node_repl_history
+.npm
+.cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
+*.tsbuildinfo
+next-env.d.ts
 
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
+# ─────────────── Output of npm pack ───────────────
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-dist
-
-# Storybook build outputs
-.out
-.storybook-out
-
-# Temporary files
+# ─────────────── Generated or Temporary Directories ───────────────
+out/
 temp/
-*.tmp
-*.temp
-
-# Test files (for production deployment)
-scripts/test-*.ts
-scripts/test-*.js
-
-# Documentation files (development only)
-n8n_prompt_Generate_Knowledge_Base.md
-n8n_System_Message_Fusion.md
-n8n_System_Message_localbox.md
-n8n_System_Message.md
-N8N_TROUBLESHOOTING.md
-FORMPREE_SETUP.md
-IMPLEMENTATION_SUMMARY.md
-website_blueprint.md
-
-# Generated demos (runtime data)
-public/demos/*/
-public/system_messages/*.md
-data/registry/demos.json
-
-# Development images
-public/ChatGPT*.png
-public/tomas.png
-public/placeholder*.png
-public/placeholder*.svg
-public/placeholder*.jpg
-
-# Package manager files (keep only one)
-pnpm-lock.yaml
-
-# PM2 logs and runtime files
-logs/
-*.log
-ecosystem.config.js.bak
+tmp/

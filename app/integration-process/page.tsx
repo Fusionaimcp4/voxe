@@ -63,7 +63,7 @@ export default function IntegrationProcessPage() {
           className="text-center mb-16"
         >
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            How Integration Works
+            How Enterpise Integration Works
           </h1>
           <p className="text-xl text-zinc-400 max-w-3xl mx-auto leading-relaxed">
             From setup to handover, here's how we bring AI-powered support to your business.

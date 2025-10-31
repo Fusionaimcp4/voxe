@@ -73,7 +73,7 @@ export function renderDemoHTML(ctx: DemoCtx): string {
   <header>
     ${logoBlock}
     <h1>${businessName} — AI Support Demo</h1>
-    <div class="tag">Powered by Voxe • AI Support with ${businessName} Knowledge Base</div>
+    <div class="tag">Powered by LocalBoxes • AI Support with ${businessName} Knowledge Base</div>
   </header>
 
   <main class="container" aria-label="Demo content for ${businessName}">
@@ -136,16 +136,44 @@ export function renderDemoHTML(ctx: DemoCtx): string {
   </main>
 
   <script>
+    window.chatwootSettings = {"position":"right","type":"standard","launcherTitle":"Chat with us"};
     (function(d,t) {
-      var BASE_URL="${chatwootBaseUrl}";
-      var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-      g.src=BASE_URL+"/packs/js/sdk.js"; s.parentNode.insertBefore(g,s);
-      g.onload=function(){
-        window.chatwootSDK.run({ websiteToken: "${websiteToken}", baseUrl: BASE_URL });
-        if (window.$chatwoot && window.$chatwoot.setCustomAttributes) {
-          window.$chatwoot.setCustomAttributes({ business: "${businessName}", slug: "${slug}" });
+      var BASE_URL = "${chatwootBaseUrl}";
+      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+      g.src = BASE_URL + "/packs/js/sdk.js";
+      g.async = true;
+      g.crossOrigin = "anonymous"; // Add CORS support
+      s.parentNode.insertBefore(g,s);
+      g.onload = function() {
+        try {
+          window.chatwootSDK.run({
+            websiteToken: "${websiteToken}",
+            baseUrl: BASE_URL
+          });
+          if (window.$chatwoot && window.$chatwoot.setCustomAttributes) {
+            window.$chatwoot.setCustomAttributes({ business: "${businessName}", slug: "${slug}" });
+          }
+        } catch (error) {
+          // Silently handle widget loading errors
         }
-      }
+      };
+      g.onerror = function(error) {
+        // Fallback: try to load without CORS
+        var fallbackScript = d.createElement(t);
+        fallbackScript.src = BASE_URL + "/packs/js/sdk.js";
+        fallbackScript.async = true;
+        fallbackScript.onload = function() {
+          try {
+            window.chatwootSDK.run({
+              websiteToken: "${websiteToken}",
+              baseUrl: BASE_URL
+            });
+          } catch (fallbackError) {
+            // Silently handle fallback errors
+          }
+        };
+        s.parentNode.insertBefore(fallbackScript, s);
+      };
     })(document,"script");
   </script>
 </body>

@@ -1,86 +1,70 @@
 import { HeroSection } from "@/components/hero-section"
 import { DashboardPreview } from "@/components/dashboard-preview"
 import { SocialProof } from "@/components/social-proof"
+import { ValuePropositionSection } from "@/components/value-proposition-section"
 import { BentoSection } from "@/components/bento-section"
-import { ComparisonSection } from "@/components/comparison-section"
-import { ROICalculatorSection } from "@/components/roi-calculator-section"
-import { HowItWorksSection } from "@/components/how-it-works-section"
-import { SecurityControlSection } from "@/components/security-control-section"
-import { IntegrationsSection } from "@/components/integrations-section"
+import { FeaturesGrid } from "@/components/features-grid"
+import { ComparisonPanel } from "@/components/comparison-panel"
 import { LargeTestimonial } from "@/components/large-testimonial"
 import { PricingSection } from "@/components/pricing-section"
+import { SecurityOwnershipSection } from "@/components/security-ownership-section"
 import { TestimonialGridSection } from "@/components/testimonial-grid-section"
-import { FAQSection } from "@/components/faq-section"
 import { CTASection } from "@/components/cta-section"
 import { FooterSection } from "@/components/footer-section"
 import { AnimatedSection } from "@/components/animated-section"
-import { SharedInboxSection } from "@/components/shared-inbox-section"
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden pb-0">
+    <div className="min-h-screen bg-white dark:bg-slate-900 relative overflow-hidden overflow-x-hidden">
       <div className="relative z-10">
-        <main className="max-w-[1320px] mx-auto relative">
+        <main className="w-full relative">
           <HeroSection />
+          {/* Dashboard Preview Wrapper - Mobile optimized */}
+          <div className="absolute bottom-[-160px] sm:bottom-[-150px] md:bottom-[-480px] left-1/2 transform -translate-x-1/2 z-30 w-[95%] sm:w-[90%] md:w-auto">
+            <AnimatedSection>
+              <DashboardPreview />
+            </AnimatedSection>
+          </div>
         </main>
-        
-        {/* Dashboard Preview - Overlapping with Hero */}
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto px-6 -mt-16 md:-mt-24" delay={0.1}>
-          <DashboardPreview />
-        </AnimatedSection>
-        
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto px-6 mt-8 md:mt-16" delay={0.2}>
+        <AnimatedSection className="relative z-10 mt-[250px] sm:mt-[300px] md:mt-[450px] lg:mt-[500px]" delay={0.1}>
           <SocialProof />
         </AnimatedSection>
-        <AnimatedSection id="features-section" className="relative z-10 max-w-[1320px] mx-auto mt-16" delay={0.2}>
+        <AnimatedSection className="relative z-10 py-8 md:py-12" delay={0.2}>
+          <ValuePropositionSection />
+        </AnimatedSection>
+        <AnimatedSection id="features-section" className="relative z-10 py-8 md:py-12" delay={0.2}>
           <BentoSection />
         </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.3}>
-          <ComparisonSection />
+        <AnimatedSection className="relative z-10 py-8 md:py-12" delay={0.2}>
+          <FeaturesGrid />
         </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.4}>
-          <ROICalculatorSection />
+        <AnimatedSection className="relative z-10 py-8 md:py-12" delay={0.2}>
+          <ComparisonPanel />
         </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.5}>
-          <HowItWorksSection />
-        </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.6}>
-          <SecurityControlSection />
-        </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.7}>
-          <IntegrationsSection />
-        </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.2}>
-          <CTASection />
-        </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.2}>
+        <AnimatedSection className="relative z-10 py-8 md:py-16" delay={0.2}>
           <LargeTestimonial />
         </AnimatedSection>
         <AnimatedSection
           id="pricing-section"
-          className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
+          className="relative z-10 py-8 md:py-16"
           delay={0.2}
         >
           <PricingSection />
         </AnimatedSection>
-        <AnimatedSection
-          id="shared-inbox-section"
-          className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
-          delay={0.2}
-        >
-          <SharedInboxSection />
+        <AnimatedSection className="relative z-10 py-8 md:py-16" delay={0.2}>
+          <SecurityOwnershipSection />
         </AnimatedSection>
         <AnimatedSection
           id="testimonials-section"
-          className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16"
+          className="relative z-10 py-8 md:py-16"
           delay={0.2}
         >
           <TestimonialGridSection />
         </AnimatedSection>
-        <AnimatedSection id="faq-section" className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.2}>
-          <FAQSection />
+        <AnimatedSection className="relative z-10 py-8 md:py-16" delay={0.2}>
+          <CTASection />
         </AnimatedSection>
-        <AnimatedSection className="relative z-10 max-w-[1320px] mx-auto mt-8 md:mt-16" delay={0.2}>
+        <AnimatedSection className="relative z-10 py-8 md:py-16" delay={0.2}>
           <FooterSection />
         </AnimatedSection>
       </div>

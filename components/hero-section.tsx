@@ -8,11 +8,12 @@ import { VideoModal } from "./video-modal"
 export function HeroSection() {
   return (
     <section
-      className="flex flex-col items-center text-center relative mx-auto rounded-2xl overflow-hidden my-6 py-8 pb-20 md:pb-32 px-4
-         w-full min-h-[500px] md:w-[1220px] md:h-[600px] lg:h-[810px] md:py-0 md:px-0"
+      className="flex flex-col items-center text-center relative mx-auto rounded-2xl overflow-hidden my-6 py-0 px-4
+         w-full h-[600px] sm:h-[650px] md:w-[1220px] md:h-[700px] lg:h-[750px] md:px-0 bg-gradient-to-br from-slate-50/50 via-white to-slate-50/30 dark:from-slate-950/50 dark:via-slate-900 dark:to-slate-950/30"
     >
-      {/* SVG Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      {/* Light Gradient Background */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+      <div className="absolute inset-0 z-0 opacity-30">
         <svg
           width="100%"
           height="100%"
@@ -433,61 +434,44 @@ export function HeroSection() {
           </defs>
         </svg>
       </div>
+      
+      {/* Decorative elements */}
+      <div className="absolute top-20 right-20 w-64 h-64 bg-primary/3 rounded-full blur-3xl opacity-60 animate-pulse" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-secondary/3 rounded-full blur-3xl opacity-40" />
 
       {/* Header positioned at top of hero container */}
       <div className="absolute top-0 left-0 right-0 z-20">
         <Header />
       </div>
 
-      <div className="relative z-20 space-y-4 md:space-y-5 lg:space-y-6 mb-6 md:mb-7 lg:mb-9 max-w-md md:max-w-[500px] lg:max-w-[588px] mt-8 md:mt-[120px] lg:mt-[160px] px-4">
-        <h1 className="text-foreground text-3xl md:text-4xl lg:text-6xl font-semibold leading-tight">
-        Own your AI Agent and Helpdesk. Not the bill.
+      {/* Mobile-optimized content */}
+      <div className="relative z-10 space-y-6 sm:space-y-8 md:space-y-6 lg:space-y-8 mb-8 sm:mb-10 md:mb-8 lg:mb-10 max-w-4xl mt-20 sm:mt-24 md:mt-[140px] lg:mt-[180px] px-4 sm:px-6">
+        <h1 className="text-slate-900 dark:text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
+          Help, Convert, and Sell with a Data-Driven AI Chatbot
         </h1>
-        <p className="text-muted-foreground text-base md:text-base lg:text-lg font-medium leading-relaxed max-w-lg mx-auto">
-          Voxe delivers instant hybrid support, unlimited agents, and unlimited AI resolutions—without per-seat or per-resolution fees.
+        <p className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl md:text-2xl font-medium leading-relaxed max-w-3xl mx-auto">
+          All-in-one customer support platform. AI instantly helps your customers using smart responses. Get 24/7 support and ultra-high satisfaction rates.
         </p>
-        
-        {/* CTA Buttons positioned right after the subhead */}
-        <div className="relative z-30 flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
-          <Link href="/userdemo">
-            <Button
-              variant="ghost"
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-8 py-3 rounded-full font-medium text-base shadow-lg ring-1 ring-white/10"
-            >
-              See a demo
-            </Button>
-          </Link>
-          <Link href="/contact">
-            <Button
-              variant="ghost"
-              className="text-secondary-foreground hover:bg-secondary/10 px-8 py-3 rounded-full font-medium text-base"
-            >
-              Try a pilot
-            </Button>
-          </Link>
-        </div>
-        
-        {/* Key Benefits */}
-        <div className="space-y-3 mt-6">
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-            <p className="text-muted-foreground text-sm md:text-base font-medium">
-              AI answers ~95% instantly; smart routing handles the rest.
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-            <p className="text-muted-foreground text-sm md:text-base font-medium">
-              Self-hosted or managed-hosted: your infrastructure, your data.
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-            <p className="text-muted-foreground text-sm md:text-base font-medium">
-              Predictable cost; zero vendor lock-in.
-            </p>
-          </div>
-        </div>
+      </div>
+
+      {/* Mobile-optimized buttons */}
+      <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-2xl px-4 sm:px-6">
+        <ContactModal>
+          
+          <Button
+            className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 px-8 sm:px-10 py-5 sm:py-6 rounded-xl font-semibold text-base shadow-xl hover:shadow-2xl transition-all min-h-[52px] sm:min-h-[56px]"
+          >
+            Book a Free Demo
+          </Button>
+        </ContactModal>
+        <Link href="/dashboard/userdemo" className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto bg-white text-black hover:bg-gray-100 px-8 sm:px-10 py-5 sm:py-6 rounded-xl font-semibold text-base shadow-xl hover:shadow-2xl transition-all min-h-[52px] sm:min-h-[56px]"
+          >
+            See Live Demo
+          </Button>
+        </Link>
       </div>
     </section>
   )

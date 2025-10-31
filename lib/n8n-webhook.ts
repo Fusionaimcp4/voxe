@@ -21,7 +21,7 @@ export async function duplicateWorkflowViaWebhook(
   businessName: string,
   apiKey: string,
   systemMessage: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; workflowId?: string; error?: string }> {
   const endpoint = process.env.N8N_DUPLICATE_ENDPOINT;
   
   if (!endpoint) {
@@ -49,7 +49,23 @@ export async function duplicateWorkflowViaWebhook(
 
     if (response.ok) {
       console.log(`✅ Workflow duplication request sent successfully for ${businessName}`);
-      return { success: true };
+      
+      // Try to parse the response to get the workflow ID
+      try {
+        const responseData = await response.json();
+        const workflowId = responseData.workflowId || responseData.id || responseData.workflow_id;
+        
+        if (workflowId) {
+          console.log(`📋 Workflow ID received: ${workflowId}`);
+          return { success: true, workflowId };
+        } else {
+          console.log(`⚠️ No workflow ID in response, but request succeeded`);
+          return { success: true };
+        }
+      } catch (parseError) {
+        console.log(`⚠️ Could not parse response, but request succeeded`);
+        return { success: true };
+      }
     } else {
       const errorText = await response.text().catch(() => 'Unknown error');
       console.error(`❌ Workflow duplication failed for ${businessName}: ${response.status} ${errorText}`);

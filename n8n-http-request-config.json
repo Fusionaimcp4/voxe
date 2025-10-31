@@ -1,0 +1,24 @@
+{
+  "parameters": {
+    "method": "POST",
+    "url": "https://62f5e232662d.ngrok-free.app/api/workflow/update-id",
+    "sendHeaders": true,
+    "headerParameters": {
+      "parameters": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={\n  \"businessName\": \"{{ $node[\"Webhook Trigger\"].json.body.businessName }}\",\n  \"workflowId\": \"{{ $json.id }}\"\n}",
+    "options": {}
+  },
+  "type": "n8n-nodes-base.httpRequest",
+  "typeVersion": 4.2,
+  "position": [1056, 0],
+  "id": "7693d649-68f9-4333-8544-ca6d17ab0d15",
+  "name": "HTTP Request"
+}

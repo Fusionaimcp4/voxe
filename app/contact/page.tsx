@@ -259,7 +259,7 @@ function ContactForm() {
             </div>
 
             <div className="bg-zinc-900/60 rounded-3xl border border-zinc-800 p-8">
-              <h3 className="text-xl font-semibold mb-4">Why choose Voxe?</h3>
+              <h3 className="text-xl font-semibold mb-4">Why choose LocalBox?</h3>
               <ul className="space-y-3 text-sm text-zinc-400">
                 <li className="flex items-center gap-2">
                   <span className="text-emerald-400">✓</span>

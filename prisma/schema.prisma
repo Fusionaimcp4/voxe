@@ -1,0 +1,528 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String              @id @default(cuid())
+  email                 String              @unique
+  name                  String?
+  company               String?
+  password              String?
+  role                  UserRole            @default(USER)
+  tenantId              String?
+  isVerified            Boolean             @default(false)
+  emailVerifiedAt       DateTime?
+  failedLoginCount      Int                 @default(0)
+  lastLoginAt           DateTime?
+  lastLoginIp           String?
+  totpSecret            String?
+  avatarUrl             String?
+  subscriptionTier      SubscriptionTier    @default(FREE)
+  subscriptionStatus    SubscriptionStatus  @default(ACTIVE)
+  subscriptionExpiresAt DateTime?
+  fusionSubAccountId    String?
+  fusionCredentialName  String?
+  fusionCredentialId    String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  apiCallsThisMonth     Int                 @default(0)
+  balanceUsd            Decimal             @default(0) @db.Decimal(12, 4)
+  freeTrialEndsAt       DateTime? // Added for 14-day free trial
+
+  accounts              Account[]
+  apiCallLogs           ApiCallLog[]
+  apiKeys               ApiKey[]
+  demos                 Demo[]
+  helpdeskUsers         HelpdeskUser[]
+  integrations          Integration[]
+  knowledgeBases        KnowledgeBase[]
+  sessions              Session[]
+  transactions          Transaction[]
+  userFeatures          UserFeature[] @relation("UserToUserFeature") // Explicit relation name
+  verificationTokens    VerificationToken[]
+  workflows             Workflow[]          @relation("WorkflowUser")
+
+  @@map("users")
+}
+
+model Transaction {
+  id                      String            @id @default(cuid())
+  userId                  String
+  stripePaymentIntentId   String?
+  stripeCheckoutSessionId String?
+  stripeInvoiceId         String?
+  type                    String
+  amount                  Decimal           @db.Decimal(10, 2)
+  currency                String            @default("USD")
+  status                  String
+  productType             String
+  subscriptionTier        SubscriptionTier?
+  description             String?
+  metadata                Json?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @default(now()) @updatedAt
+  user                    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripePaymentIntentId])
+  @@index([stripeCheckoutSessionId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model Demo {
+  id                   String         @id @default(cuid())
+  userId               String
+  slug                 String         @unique
+  businessName         String
+  businessUrl          String
+  systemMessageFile    String
+  demoUrl              String
+  primaryColor         String?
+  secondaryColor       String?
+  logoUrl              String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  chatwootInboxId      Int?
+  chatwootWebsiteToken String?
+  contacts             Contact[]
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  systemMessages       SystemMessage?
+  workflows            Workflow[]
+
+  @@map("demos")
+}
+
+model Workflow {
+  id             String                  @id @default(cuid())
+  demoId         String
+  userId         String
+  n8nWorkflowId  String?
+  status         WorkflowStatus          @default(INACTIVE)
+  configuration  Json?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  knowledgeBases WorkflowKnowledgeBase[]
+  demo           Demo                    @relation(fields: [demoId], references: [id], onDelete: Cascade)
+  user           User                    @relation("WorkflowUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("workflows")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  demoId    String
+  name      String
+  email     String
+  company   String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  demo      Demo     @relation(fields: [demoId], references: [id], onDelete: Cascade)
+
+  @@map("contacts")
+}
+
+model ApiKey {
+  id         String   @id @default(cuid())
+  userId     String
+  provider   String
+  model      String
+  apiKey     String
+  isActive   Boolean  @default(true)
+  usageStats Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+model SystemMessage {
+  id        String   @id @default(cuid())
+  demoId    String   @unique
+  content   String
+  sections  Json?
+  version   Int      @default(1)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  demo      Demo     @relation(fields: [demoId], references: [id], onDelete: Cascade)
+
+  @@map("system_messages")
+}
+
+model SystemMessageTemplate {
+  id          String                 @id @default(cuid())
+  name        String
+  description String
+  content     String
+  isActive    Boolean                @default(true)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  versions    SystemMessageVersion[]
+
+  @@map("system_message_templates")
+}
+
+model SystemMessageVersion {
+  id          String                @id @default(cuid())
+  templateId  String
+  version     Int
+  content     String
+  isPublished Boolean               @default(false)
+  publishedAt DateTime?
+  publishedBy String?
+  changeLog   String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  template    SystemMessageTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("system_message_versions")
+}
+
+model Integration {
+  id            String          @id @default(cuid())
+  userId        String
+  name          String
+  type          IntegrationType
+  configuration Json
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("integrations")
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  demoId    String?
+  userId    String?
+  eventType String
+  eventData Json?
+  timestamp DateTime @default(now())
+
+  @@map("analytics")
+}
+
+model KnowledgeBase {
+  id             String                  @id @default(cuid())
+  userId         String
+  name           String
+  description    String?
+  type           KBType                  @default(USER)
+  totalDocuments Int                     @default(0)
+  totalChunks    Int                     @default(0)
+  totalTokens    Int                     @default(0)
+  lastSyncedAt   DateTime?
+  isActive       Boolean                 @default(true)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  documents      Document[]
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workflows      WorkflowKnowledgeBase[]
+
+  @@index([userId])
+  @@index([type])
+  @@map("knowledge_bases")
+}
+
+model Document {
+  id               String           @id @default(cuid())
+  knowledgeBaseId  String
+  filename         String
+  originalName     String
+  fileType         String
+  fileSize         Int
+  filePath         String
+  fileUrl          String?
+  extractedText    String?
+  summary          String?
+  pageCount        Int?
+  wordCount        Int?
+  language         String?          @default("en")
+  status           ProcessingStatus @default(PENDING)
+  processingError  String?
+  chunkingStrategy String?          @default("recursive")
+  chunkSize        Int?             @default(1000)
+  chunkOverlap     Int?             @default(200)
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  chunks           DocumentChunk[]
+  knowledgeBase    KnowledgeBase    @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+
+  @@index([knowledgeBaseId])
+  @@index([status])
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id             String   @id @default(cuid())
+  documentId     String
+  content        String
+  chunkIndex     Int
+  tokenCount     Int
+  pageNumber     Int?
+  section        String?
+  embedding      Json?
+  embeddingModel String   @default("text-embedding-3-small")
+  createdAt      DateTime @default(now())
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([chunkIndex])
+  @@map("document_chunks")
+}
+
+model WorkflowKnowledgeBase {
+  id                  String        @id @default(cuid())
+  workflowId          String
+  knowledgeBaseId     String
+  priority            Int           @default(0)
+  retrievalLimit      Int           @default(5)
+  similarityThreshold Float         @default(0.7)
+  isActive            Boolean       @default(true)
+  assignedAt          DateTime      @default(now())
+  knowledgeBase       KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+  workflow            Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, knowledgeBaseId])
+  @@index([workflowId])
+  @@index([knowledgeBaseId])
+  @@map("workflow_knowledge_bases")
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String
+  type      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@map("verification_tokens")
+}
+
+model Feature {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String
+  tier        SubscriptionTier
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  userFeatures UserFeature[] @relation("FeatureToUserFeature") // Explicit relation name
+
+  @@map("features")
+}
+
+model UserFeature {
+  id        String    @id @default(cuid())
+  userId    String
+  featureId String
+  grantedAt DateTime  @default(now())
+  expiresAt DateTime?
+  feature   Feature   @relation("FeatureToUserFeature", fields: [featureId], references: [id], onDelete: Cascade) // Link to Feature with explicit relation name
+  user      User      @relation("UserToUserFeature", fields: [userId], references: [id], onDelete: Cascade) // Link to User with explicit relation name
+
+  @@unique([userId, featureId])
+  @@index([userId])
+  @@index([featureId])
+  @@map("user_features")
+}
+
+model TierLimit {
+  id                   String           @id @default(cuid())
+  tier                 SubscriptionTier @unique
+  maxDemos             Int
+  maxWorkflows         Int
+  maxKnowledgeBases    Int
+  maxDocuments         Int
+  maxIntegrations      Int
+  apiCallsPerMonth     Int
+  documentSizeLimit    Int
+  chunkSize            Int
+  maxChunksPerDocument Int
+  isActive             Boolean          @default(true)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  maxHelpdeskAgents    Int              @default(1)
+
+  @@map("tier_limits")
+}
+
+model PricingPlan {
+  id          String           @id @default(cuid())
+  tier        SubscriptionTier @unique
+  name        String
+  price       Decimal          @db.Decimal(10, 2)
+  currency    String           @default("USD")
+  period      String           @default("month")
+  description String
+  features    String[]
+  isPopular   Boolean          @default(false)
+  isActive    Boolean          @default(true)
+  ctaText     String           @default("Get Started")
+  ctaHref     String           @default("/dashboard/userdemo")
+  stripeMonthlyPriceId String? // Stripe Price ID for monthly subscriptions
+  stripeYearlyPriceId  String? // Stripe Price ID for yearly subscriptions
+  annualDiscountPercentage Int? @default(0) // New: Annual discount percentage
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("pricing_plans")
+}
+
+model BlockedEmailDomain {
+  domain    String   @id
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@map("blocked_email_domains")
+}
+
+model ApiCallLog {
+  id              String   @id @default(cuid())
+  userId          String
+  provider        String
+  model           String
+  endpoint        String
+  inputTokens     Int      @default(0)
+  outputTokens    Int      @default(0)
+  totalTokens     Int      @default(0)
+  cost            Float    @default(0.0)
+  responseTime    Int      @default(0)
+  context         String?
+  documentId      String?
+  knowledgeBaseId String?
+  workflowId      String?
+  success         Boolean  @default(true)
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_call_logs")
+}
+
+model HelpdeskUser {
+  id             String              @id @default(cuid())
+  userId         String
+  name           String
+  email          String
+  chatwootUserId Int?
+  chatwootRole   String              @default("agent")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  inboxes        HelpdeskUserInbox[]
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("helpdesk_users")
+}
+
+model HelpdeskUserInbox {
+  id             String       @id @default(cuid())
+  helpdeskUserId String
+  inboxId        Int
+  isActive       Boolean      @default(true)
+  assignedAt     DateTime     @default(now())
+  helpdeskUser   HelpdeskUser @relation(fields: [helpdeskUserId], references: [id], onDelete: Cascade)
+
+  @@unique([helpdeskUserId, inboxId])
+  @@index([helpdeskUserId])
+  @@index([inboxId])
+  @@map("helpdesk_user_inboxes")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SubscriptionTier {
+  FREE
+  STARTER
+  TEAM
+  BUSINESS
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+enum WorkflowStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  PENDING
+}
+
+enum IntegrationType {
+  CALENDAR
+  DATABASE
+  API
+  WEBHOOK
+  CRM
+  HELPDESK
+}
+
+enum KBType {
+  USER
+  WORKFLOW
+  DEMO
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}

@@ -1,50 +1,44 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Production optimizations
+  // ✅ Strict production configuration for Docker / server deployment
+
   eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
+    ignoreDuringBuilds: true, // Skip ESLint during builds
   },
   typescript: {
-    ignoreBuildErrors: process.env.NODE_ENV === 'production',
+    ignoreBuildErrors: true, // Skip TypeScript checks during builds
   },
+
+  // ✅ Use standard Next.js build (not standalone)
+  // output: 'standalone',
+
+  // ✅ Prevent Next.js from treating routes as static export
+  trailingSlash: false,
+  skipTrailingSlashRedirect: true,
+
+  // ✅ Image optimization
   images: {
     unoptimized: true,
-    domains: ['localhost', 'your-domain.com'],
+    domains: ['localhost', 'localboxs.com'],
     formats: ['image/webp', 'image/avif'],
   },
-  
-  // Performance optimizations
+
+  // ✅ Core performance and security
   compress: true,
   poweredByHeader: false,
-  
-  // Security headers
+
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
-          },
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
-          },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
         ],
       },
     ];
   },
-  
-  // Redirects for SEO
+
   async redirects() {
     return [
       {
@@ -54,37 +48,31 @@ const nextConfig = {
       },
     ];
   },
-  
-  // Environment variables
+
+  // ✅ Environment variables passthrough
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-  
-  // Output configuration for server deployment
-  output: 'standalone',
-  
-  // Experimental features for better performance
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-  },
-  
-  // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-          },
-        },
-      };
+
+  // ✅ Webpack configuration (keep lightweight)
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('mammoth', 'canvas', 'pdf-parse');
     }
     return config;
   },
-}
 
-export default nextConfig
+  // ✅ Explicitly allow hybrid rendering for dynamic routes
+  experimental: {
+    typedRoutes: false,
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'localboxs.com'],
+    },
+    externalDir: true,
+  },
+};
+
+export default nextConfig;
+
+

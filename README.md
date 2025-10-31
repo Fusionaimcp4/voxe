@@ -1,156 +1,211 @@
-# Voxe
+# Voxe - AI-First Customer Support Platform
 
-Voxe is a self-hosted AI-first customer support platform that ensures customers are always acknowledged while cutting operational costs. Unlike legacy vendors, you pay once for setup, own your data, and scale with unlimited agents and unlimited AI resolutions.
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-5-purple)](https://prisma.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://docker.com/)
 
-## Features
+> **Self-hosted AI customer support platform with unlimited resolutions, no per-seat fees, and complete data ownership.**
 
-- **Unlimited Usage**: No per-seat or per-resolution fees
-- **Self-Hosted Control**: You own your customer data and run on your infrastructure
-- **AI + Human Hybrid**: Intelligent routing with "Holding AI" to prevent customer wait gaps
-- **95%+ Automation**: Automated response rate with seamless human handoff
-- **Full Data Ownership**: Complete control over your customer support data
+## 🚀 Features
 
-## Tech Stack
+- **🤖 AI-Powered Support** - 95%+ automation with RAG-powered knowledge bases
+- **📱 Multi-Channel** - Web chat, email, SMS, WhatsApp integration
+- **🏠 Self-Hosted** - Complete data ownership and privacy control
+- **💰 One-Time Cost** - No recurring per-seat or per-resolution fees
+- **🔧 Fully Customizable** - White-label ready with custom branding
+- **📊 Advanced Analytics** - Comprehensive reporting and insights
+- **🔗 Extensive Integrations** - CRM, n8n workflows, Fusion API
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS, Radix UI components
-- **Integrations**: Chatwoot chat widget, Vercel Analytics
-- **AI**: OpenAI GPT-4o-mini for knowledge base generation
+## 🏗️ Architecture
 
-## Business Demo Workflow
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Node.js, Prisma ORM, PostgreSQL
+- **AI**: OpenAI GPT-4o-mini with RAG implementation
+- **Integrations**: n8n workflows, Chatwoot, Fusion API
+- **Deployment**: Docker-ready, Vercel, or self-hosted
 
-The Business Demo Workflow allows you to automatically generate AI-powered demo sites with custom knowledge bases extracted from any website.
+## 🐳 Quick Start with Docker
 
-### API Usage
+### Prerequisites
+
+- Docker and Docker Compose
+- PostgreSQL database
+- OpenAI API key
+- Chatwoot instance (optional)
+
+### 1. Clone and Setup
 
 ```bash
-POST /api/onboard
-Content-Type: application/json
-
-{
-  "business_url": "https://example.com",
-  "business_name": "Example Corp",
-  "primary_color": "#0ea5e9",
-  "secondary_color": "#111827",
-  "logo_url": "https://example.com/logo.png"
-}
+git clone https://github.com/your-username/Voxe.git
+cd Voxe
+cp .env.example .env
 ```
 
-### CLI Usage
+### 2. Configure Environment
+
+Edit `.env` with your settings:
 
 ```bash
-ts-node scripts/onboard-business.ts --url https://fusion.mcp4.ai --name Fusion --primary "#0ea5e9" --secondary "#111827"
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/Voxe"
+
+# Authentication
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3200"
+
+# OpenAI
+OPENAI_API_KEY="your-openai-key"
+
+# Chatwoot (optional)
+CHATWOOT_BASE_URL="https://your-chatwoot-instance.com"
+CHATWOOT_ACCOUNT_ID="your-account-id"
+CHATWOOT_API_KEY="your-api-key"
+
+# Fusion API (optional)
+FUSION_API_KEY="your-fusion-key"
+FUSION_BASE_URL="https://api.mcp4.ai"
+
+# Email (optional)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
 ```
+
+### 3. Database Setup
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate deploy
+
+# Seed database (optional)
+npx prisma db seed
+```
+
+### 4. Build and Run
+
+```bash
+# Development
+npm run dev
+
+# Production build
+npm run build
+npm start
+
+# Docker
+docker-compose up -d
+```
+
+## 📋 Production Deployment
 
 ### Environment Variables
 
-Create a `.env` file with the following variables:
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | ✅ | Random secret for JWT signing |
+| `NEXTAUTH_URL` | ✅ | Your application URL |
+| `OPENAI_API_KEY` | ✅ | OpenAI API key for AI features |
+| `CHATWOOT_BASE_URL` | ❌ | Chatwoot instance URL |
+| `CHATWOOT_ACCOUNT_ID` | ❌ | Chatwoot account ID |
+| `CHATWOOT_API_KEY` | ❌ | Chatwoot API key |
+| `FUSION_API_KEY` | ❌ | Fusion API key for AI orchestration |
+| `SMTP_HOST` | ❌ | SMTP server for email notifications |
+| `SMTP_USER` | ❌ | SMTP username |
+| `SMTP_PASS` | ❌ | SMTP password |
 
-```bash
-# Chatwoot
-CHATWOOT_BASE_URL=https://chatvoxe.mcp4.ai
-CHATWOOT_ACCOUNT_ID=1
-CHATWOOT_API_KEY=your_chatwoot_api_key_here
+### Security Checklist
 
-# n8n Integration (webhook-based workflow duplication)
-N8N_DUPLICATE_ENDPOINT=https://n8n.mcp4.ai/webhook/duplicate-agent
+- [ ] Change default `NEXTAUTH_SECRET`
+- [ ] Use strong database passwords
+- [ ] Enable HTTPS in production
+- [ ] Configure CORS properly
+- [ ] Set up rate limiting
+- [ ] Enable email verification
+- [ ] Configure 2FA (optional)
 
-# LLM
-OPENAI_API_KEY=sk-your_openai_api_key_here
+### Performance Optimization
 
-# Application URL (for demo links)
-NEXT_PUBLIC_BASE_URL=http://localhost:3000  # Local development
-# NEXT_PUBLIC_BASE_URL=https://your-domain.com  # Production
+- [ ] Enable Next.js production optimizations
+- [ ] Configure CDN for static assets
+- [ ] Set up database connection pooling
+- [ ] Enable Redis for caching (optional)
+- [ ] Configure monitoring and logging
 
-# Files/hosting (legacy - now uses Next.js routes)
-SKELETON_PATH=./data/templates/n8n_System_Message.md
-DEMO_ROOT=./public/demos
-DEMO_DOMAIN=localboxs.com
-```
+## 🔧 Development
 
-### Workflow Outputs
+### Prerequisites
 
-The system generates:
+- Node.js 18+ 
+- PostgreSQL 14+
+- npm or yarn
 
-1. **Knowledge Base**: AI-extracted business information in Markdown format
-2. **System Message**: Merged skeleton template with business-specific knowledge at `/public/system_messages/n8n_System_Message_<Business>.md`
-3. **Demo Site**: Custom-branded HTML page served via Next.js route `/demo/<slug>`
-4. **System Message View**: Formatted view via Next.js route `/system-message/<filename>`
-5. **Chatwoot Inbox**: Dedicated chat inbox for the business demo
-6. **n8n Workflow**: Auto-cloned and configured workflow with business-specific settings (when n8n API is configured)
-7. **Chatwoot Agent Bot**: Automated bot assigned to the inbox with proper webhook configuration (when n8n API is configured)
-8. **JSON Registry**: Persistent record of created demos for tracking
-
-### Automated Workflow Integration
-
-When the n8n webhook endpoint is configured, the system automatically:
-
-- **Creates** a Chatwoot website inbox for the business demo
-- **Creates** a Chatwoot Agent Bot named `<BusinessName> Bot` with webhook URL pointing to n8n
-- **Assigns** the bot to the inbox using the correct `/set_agent_bot` endpoint with `{"agent_bot": <bot_id>}`
-- **Verifies** bot assignment by checking inbox details
-- **Triggers** n8n workflow duplication via webhook endpoint
-- **Sends** business name, bot access token, and system message to your n8n automation
-- **Provides** fire-and-forget integration that doesn't block the demo creation process
-- **Logs** success/failure status for monitoring and troubleshooting
-
-### File Structure
-
-```
-/data/templates/n8n_System_Message.md        # Skeleton template
-/data/registry/demos.json                    # Demo registry
-/public/system_messages/                     # Generated system messages
-/public/demos/<slug>/index.html              # Demo landing pages
-/lib/                                        # Core utilities
-/app/admin/onboard/                          # Admin UI
-/app/api/onboard/                            # API endpoint
-/scripts/onboard-business.ts                 # CLI tool
-```
-
-### Manual Steps After Generation
-
-**With n8n webhook endpoint configured (automatic):**
-1. ✅ Chatwoot bot automatically created and assigned
-2. ✅ n8n workflow duplication automatically triggered via webhook
-3. ✅ System message and bot configuration sent to your n8n automation
-4. ✅ Webhook automation handles workflow setup
-5. Test the demo URL to ensure the chat widget works end-to-end
-
-**Without n8n webhook (manual):**
-1. Create and assign Chatwoot bot manually
-2. Duplicate the Main n8n workflow in the n8n UI  
-3. Name the new workflow with the business name
-4. Open the "Main AI" node and paste the generated system message content
-5. Set webhook path to the business name and configure bot authentication
-6. Test the demo URL to ensure the chat widget works end-to-end
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Copy `.env.example` to `.env` and configure your API keys
-4. Run the development server: `npm run dev`
-5. Access the admin interface at `/admin/onboard`
-
-## Development
+### Setup
 
 ```bash
 # Install dependencies
 npm install
 
-# Run development server
+# Setup database
+npx prisma migrate dev
+npx prisma generate
+
+# Start development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
-
-# Run CLI onboarding
-ts-node scripts/onboard-business.ts --url https://example.com
 ```
 
-## License
+### Available Scripts
 
-This project is private and proprietary to Voxe/Fusion AI.
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript checks
+npm run test         # Run tests
+```
+
+## 📚 Documentation
+
+- [Database Setup](docs/DATABASE_SETUP.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [API Documentation](docs/API.md)
+- [Integration Guide](docs/CRM_INTEGRATION_GUIDE.md)
+- [Troubleshooting](docs/N8N_TROUBLESHOOTING.md)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- 📧 Email: support@localboxs.com
+- 📖 Documentation: [docs/](docs/)
+- 🐛 Issues: [GitHub Issues](https://github.com/your-username/Voxe/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/your-username/Voxe/discussions)
+
+## 🎯 Roadmap
+
+- [ ] Mobile app for agents
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] Enterprise SSO integration
+- [ ] Advanced workflow automation
+- [ ] Voice support integration
+
+---
+
+**Built with ❤️ for businesses that value data ownership and cost efficiency.**
