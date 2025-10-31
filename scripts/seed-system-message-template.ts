@@ -25,15 +25,31 @@ async function seedSystemMessageTemplate() {
       return;
     }
 
-    // Read template file
-    const templatePath = path.join(process.cwd(), 'data/templates/n8n_System_Message.md');
-    console.log(`📄 Reading template file from: ${templatePath}`);
+    // Read template file - check multiple possible locations
+    const possiblePaths = [
+      path.join(process.cwd(), 'data/templates/n8n_System_Message.md'),
+      path.join(process.cwd(), 'public/system_messages/n8n_System_Message.md'),
+      path.join(process.cwd(), 'public', 'system_messages', 'n8n_System_Message.md'),
+    ];
     
-    const fileContent = await readTextFileIfExists(templatePath);
+    let fileContent: string | null = null;
+    let templatePath = '';
+    
+    for (const possiblePath of possiblePaths) {
+      console.log(`📄 Trying template file: ${possiblePath}`);
+      const content = await readTextFileIfExists(possiblePath);
+      if (content) {
+        fileContent = content;
+        templatePath = possiblePath;
+        break;
+      }
+    }
     
     if (!fileContent) {
-      throw new Error(`Template file not found at ${templatePath}`);
+      throw new Error(`Template file not found. Checked: ${possiblePaths.join(', ')}`);
     }
+    
+    console.log(`✅ Found template file at: ${templatePath}`);
 
     console.log(`✅ Template file read (${fileContent.length} characters)`);
 
