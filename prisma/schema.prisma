@@ -35,8 +35,7 @@ model User {
   stripeSubscriptionId  String?
   apiCallsThisMonth     Int                 @default(0)
   balanceUsd            Decimal             @default(0) @db.Decimal(12, 4)
-  freeTrialEndsAt       DateTime? // Added for 14-day free trial
-
+  freeTrialEndsAt       DateTime?
   accounts              Account[]
   apiCallLogs           ApiCallLog[]
   apiKeys               ApiKey[]
@@ -46,7 +45,7 @@ model User {
   knowledgeBases        KnowledgeBase[]
   sessions              Session[]
   transactions          Transaction[]
-  userFeatures          UserFeature[] @relation("UserToUserFeature") // Explicit relation name
+  userFeatures          UserFeature[]       @relation("UserToUserFeature")
   verificationTokens    VerificationToken[]
   workflows             Workflow[]          @relation("WorkflowUser")
 
@@ -318,14 +317,14 @@ model VerificationToken {
 }
 
 model Feature {
-  id          String           @id @default(cuid())
-  name        String           @unique
-  description String
-  tier        SubscriptionTier
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  userFeatures UserFeature[] @relation("FeatureToUserFeature") // Explicit relation name
+  id           String           @id @default(cuid())
+  name         String           @unique
+  description  String
+  tier         SubscriptionTier
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  userFeatures UserFeature[]    @relation("FeatureToUserFeature")
 
   @@map("features")
 }
@@ -336,8 +335,8 @@ model UserFeature {
   featureId String
   grantedAt DateTime  @default(now())
   expiresAt DateTime?
-  feature   Feature   @relation("FeatureToUserFeature", fields: [featureId], references: [id], onDelete: Cascade) // Link to Feature with explicit relation name
-  user      User      @relation("UserToUserFeature", fields: [userId], references: [id], onDelete: Cascade) // Link to User with explicit relation name
+  feature   Feature   @relation("FeatureToUserFeature", fields: [featureId], references: [id], onDelete: Cascade)
+  user      User      @relation("UserToUserFeature", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, featureId])
   @@index([userId])
@@ -366,23 +365,23 @@ model TierLimit {
 }
 
 model PricingPlan {
-  id          String           @id @default(cuid())
-  tier        SubscriptionTier @unique
-  name        String
-  price       Decimal          @db.Decimal(10, 2)
-  currency    String           @default("USD")
-  period      String           @default("month")
-  description String
-  features    String[]
-  isPopular   Boolean          @default(false)
-  isActive    Boolean          @default(true)
-  ctaText     String           @default("Get Started")
-  ctaHref     String           @default("/dashboard/userdemo")
-  stripeMonthlyPriceId String? // Stripe Price ID for monthly subscriptions
-  stripeYearlyPriceId  String? // Stripe Price ID for yearly subscriptions
-  annualDiscountPercentage Int? @default(0) // New: Annual discount percentage
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                       String           @id @default(cuid())
+  tier                     SubscriptionTier @unique
+  name                     String
+  price                    Decimal          @db.Decimal(10, 2)
+  currency                 String           @default("USD")
+  period                   String           @default("month")
+  description              String
+  features                 String[]
+  isPopular                Boolean          @default(false)
+  isActive                 Boolean          @default(true)
+  ctaText                  String           @default("Get Started")
+  ctaHref                  String           @default("/dashboard/userdemo")
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  annualDiscountPercentage Int?             @default(0)
+  stripeMonthlyPriceId     String?
+  stripeYearlyPriceId      String?
 
   @@map("pricing_plans")
 }
