@@ -1,5 +1,5 @@
 {
-  "name": "localboxs",
+  "name": "voxe",
   "version": "1.0.0",
   "private": true,
   "description": "Voxe - Unlimited Agents, Self-Hosted AI Support",
@@ -112,14 +112,14 @@
     "chatwoot",
     "n8n"
   ],
-  "author": "LocalBoxs",
+  "author": "Voxe",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/localboxs/localboxs.git"
+    "url": "https://github.com/Fusionaimcp4/voxe.git"
   },
-  "homepage": "https://localboxs.com",
+  "homepage": "https://voxe.mcp4.ai",
   "bugs": {
-    "url": "https://github.com/localboxs/localboxs/issues"
+    "url": "https://github.com/Fusionaimcp4/voxe/issues"
   }
 }

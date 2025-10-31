@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Script to create an admin user for the LocalBox system
+ * Script to create an admin user for the Voxe system
  */
 
 import { PrismaClient } from '../lib/generated/prisma';
@@ -31,7 +31,7 @@ async function createAdminUser() {
       data: {
         email: 'admin@mcp4.ai',
         name: 'System Admin',
-        company: 'LocalBox',
+        company: process.env.APP_NAME || 'Voxe',
         password: hashedPassword,
         role: 'SUPER_ADMIN',
       },

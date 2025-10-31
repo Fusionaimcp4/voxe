@@ -11,7 +11,7 @@ fi
 
 # Use DATABASE_URL from .env or set default
 if [ -z "$DATABASE_URL" ]; then
-    export DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@localhost:5433/localboxs"
+    export DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@localhost:5433/voxe"
 fi
 
 echo "📊 Database URL: $DATABASE_URL"

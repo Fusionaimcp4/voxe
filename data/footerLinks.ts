@@ -1,6 +1,6 @@
 export const footerConfig = {
   tagline: "AI-support without per-seat or per-resolution fees",
-  copyright: `© ${new Date().getFullYear()} LocalBoxs. All rights reserved.`,
+  copyright: `© ${new Date().getFullYear()} Voxe. All rights reserved.`,
   microcopy: "Built with care for teams that value ownership",
 } as const
 

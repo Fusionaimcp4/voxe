@@ -53,7 +53,7 @@ async function migrateDemos() {
       create: {
         email: 'admin@mcp4.ai',
         name: 'System Admin',
-        company: 'LocalBox',
+        company: process.env.APP_NAME || 'Voxe',
         role: 'SUPER_ADMIN',
         password: null, // Will be set separately
       },

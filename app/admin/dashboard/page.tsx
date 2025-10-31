@@ -137,7 +137,7 @@ export default function AdminDashboardPage() {
           Admin Dashboard
         </h1>
         <p className="text-lg text-slate-600 dark:text-slate-400">
-          Manage LocalBox system, users, and demos
+          Manage Voxe system, users, and demos
         </p>
       </motion.div>
 

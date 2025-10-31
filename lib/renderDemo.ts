@@ -73,7 +73,7 @@ export function renderDemoHTML(ctx: DemoCtx): string {
   <header>
     ${logoBlock}
     <h1>${businessName} — AI Support Demo</h1>
-    <div class="tag">Powered by LocalBoxes • AI Support with ${businessName} Knowledge Base</div>
+    <div class="tag">Powered by Voxe • AI Support with ${businessName} Knowledge Base</div>
   </header>
 
   <main class="container" aria-label="Demo content for ${businessName}">

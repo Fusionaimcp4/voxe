@@ -249,7 +249,7 @@ export default function DemosPage() {
             <Plus className="w-16 h-16 text-slate-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">No Demos Yet</h3>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-              Create your first AI support demo to get started with LocalBox.
+              Create your first AI support demo to get started with Voxe.
             </p>
             <Link
               href="/dashboard/userdemo"
