@@ -1,5 +1,5 @@
-import { PrismaClient } from '../lib/generated/prisma';
-import { readTextFileIfExists } from '../lib/fsutils';
+import { PrismaClient } from './lib/generated/prisma';
+import { readTextFileIfExists } from './lib/fsutils';
 import path from 'path';
 
 const prisma = new PrismaClient();
