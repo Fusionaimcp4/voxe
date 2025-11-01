@@ -6,6 +6,7 @@
 import { prisma } from './prisma';
 import { stripe } from './stripe';
 import { SubscriptionTier } from './generated/prisma';
+import { sendEmail, loadEmailTemplate } from './mailer';
 
 /**
  * Get or create a Stripe customer for a user
@@ -247,6 +248,112 @@ export async function downgradeUserToFree(userId: string): Promise<void> {
 }
 
 /**
+ * Sends email notification when free trial expires
+ */
+async function sendTrialExpiredEmail(userEmail: string, userName: string | null): Promise<void> {
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appName = process.env.APP_NAME || 'Voxe';
+    const supportEmail = process.env.SUPPORT_EMAIL || `support@${process.env.EMAIL_DOMAIN || 'mcp4.ai'}`;
+    const supportUrl = `${baseUrl}/contact`;
+    const upgradeUrl = `${baseUrl}/pricing`;
+
+    const emailHtml = await loadEmailTemplate('trial-expired', {
+      userName: userName || 'there',
+      appName,
+      upgradeUrl,
+      supportUrl,
+      supportEmail,
+      currentYear: new Date().getFullYear().toString(),
+    });
+
+    await sendEmail({
+      to: userEmail,
+      subject: `Your ${appName} Free Trial Has Ended`,
+      html: emailHtml,
+    });
+  } catch (error) {
+    console.error(`Failed to send trial expired email to ${userEmail}:`, error);
+    // Don't throw - email failure shouldn't block trial expiration
+  }
+}
+
+/**
+ * Sends email notification when free trial is expiring soon (3 days before)
+ */
+export async function handleExpiringFreeTrials(): Promise<void> {
+  console.log('Checking for expiring free trials...');
+  const now = new Date();
+  const threeDaysFromNow = new Date();
+  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Find users whose trial expires in 3 days (and haven't been notified yet)
+  const expiringTrialUsers = await prisma.user.findMany({
+    where: {
+      subscriptionTier: 'FREE',
+      subscriptionStatus: 'ACTIVE',
+      freeTrialEndsAt: {
+        gte: tomorrow, // Trial ends at least 1 day from now
+        lte: threeDaysFromNow, // Trial ends within 3 days
+      },
+      // Add a flag to track if we've sent the reminder (optional - can be added to User model if needed)
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      freeTrialEndsAt: true,
+    },
+  });
+
+  if (expiringTrialUsers.length === 0) {
+    console.log('No expiring free trials found.');
+    return;
+  }
+
+  console.log(`Found ${expiringTrialUsers.length} users with expiring free trials. Sending reminders...`);
+
+  for (const user of expiringTrialUsers) {
+    try {
+      if (!user.freeTrialEndsAt) continue;
+
+      const trialEndDate = new Date(user.freeTrialEndsAt);
+      const daysRemaining = Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const appName = process.env.APP_NAME || 'Voxe';
+      const supportEmail = process.env.SUPPORT_EMAIL || `support@${process.env.EMAIL_DOMAIN || 'mcp4.ai'}`;
+      const upgradeUrl = `${baseUrl}/pricing`;
+
+      const emailHtml = await loadEmailTemplate('trial-expiring-soon', {
+        userName: user.name || 'there',
+        appName,
+        daysRemaining: daysRemaining.toString(),
+        daysRemainingPlural: daysRemaining !== 1 ? 's' : '',
+        trialEndDate: trialEndDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        upgradeUrl,
+        supportEmail,
+        currentYear: new Date().getFullYear().toString(),
+      });
+
+      await sendEmail({
+        to: user.email,
+        subject: `Your ${appName} Free Trial Ends in ${daysRemaining} Day${daysRemaining !== 1 ? 's' : ''}`,
+        html: emailHtml,
+      });
+
+      console.log(`Sent trial expiration reminder to ${user.email} (${daysRemaining} days remaining)`);
+    } catch (error) {
+      console.error(`Failed to send trial expiration reminder to ${user.email} (ID: ${user.id}):`, error);
+    }
+  }
+
+  console.log('Finished processing expiring free trials.');
+}
+
+/**
  * Handles automatic downgrade/plan adjustment for users whose free trial has expired.
  * This function should be called periodically by a cron job or similar scheduled task.
  */
@@ -265,6 +372,7 @@ export async function handleExpiredFreeTrialUsers(): Promise<void> {
     select: {
       id: true,
       email: true,
+      name: true,
       freeTrialEndsAt: true,
     },
   });
@@ -278,6 +386,7 @@ export async function handleExpiredFreeTrialUsers(): Promise<void> {
 
   for (const user of expiredTrialUsers) {
     try {
+      // Update user status to EXPIRED
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -287,6 +396,7 @@ export async function handleExpiredFreeTrialUsers(): Promise<void> {
         },
       });
 
+      // Create transaction record
       await createTransaction({
         userId: user.id,
         type: 'SUBSCRIPTION_DOWNGRADE',
@@ -302,7 +412,11 @@ export async function handleExpiredFreeTrialUsers(): Promise<void> {
           trialEndedAt: user.freeTrialEndsAt?.toISOString(),
         },
       });
-      console.log(`User ${user.email} (ID: ${user.id}) free trial expired. Status updated to EXPIRED.`);
+
+      // Send expiration email notification
+      await sendTrialExpiredEmail(user.email, user.name);
+
+      console.log(`User ${user.email} (ID: ${user.id}) free trial expired. Status updated to EXPIRED and email sent.`);
     } catch (error) {
       console.error(`Failed to process expired free trial for user ${user.email} (ID: ${user.id}):`, error);
     }

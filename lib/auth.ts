@@ -222,6 +222,7 @@ export const authOptions: NextAuthOptions = {
                   subscriptionTier: 'FREE',
                   subscriptionStatus: 'ACTIVE',
                   freeTrialEndsAt, // Set free trial end date
+                  // Note: subscriptionExpiresAt is only set when users upgrade to paid plans
                 }
               });
               console.log('[Auth] Created new Google OAuth user:', user.email);

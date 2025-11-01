@@ -14,7 +14,9 @@ import {
   ChevronDown,
   ChevronRight,
   Eye,
-  EyeOff
+  EyeOff,
+  Clock,
+  Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 import { SubscriptionTier } from '@/lib/generated/prisma';
@@ -33,6 +35,8 @@ export function UsageDashboard({ className = '' }: UsageDashboardProps) {
   const [limits, setLimits] = useState<DynamicTierLimits | null>(null);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [freeTrialEndsAt, setFreeTrialEndsAt] = useState<Date | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
 
   const userTier = (session?.user?.subscriptionTier as SubscriptionTier) || 'FREE';
 
@@ -48,6 +52,30 @@ export function UsageDashboard({ className = '' }: UsageDashboardProps) {
         if (usageResponse.ok) {
           const usageData = await usageResponse.json();
           setUsage(usageData.usage);
+          // Set trial expiration date if available (from API or session fallback)
+          if (usageData.freeTrialEndsAt) {
+            const trialDate = new Date(usageData.freeTrialEndsAt);
+            setFreeTrialEndsAt(trialDate);
+          } else if (session?.user?.freeTrialEndsAt) {
+            // Fallback to session value if API doesn't return it
+            const trialDate = new Date(session.user.freeTrialEndsAt);
+            setFreeTrialEndsAt(trialDate);
+          }
+          if (usageData.subscriptionStatus) {
+            setSubscriptionStatus(usageData.subscriptionStatus);
+          } else if (session?.user?.subscriptionStatus) {
+            // Fallback to session value
+            setSubscriptionStatus(session.user.subscriptionStatus);
+          }
+        } else {
+          // If API fails, try to use session values
+          if (session?.user?.freeTrialEndsAt) {
+            const trialDate = new Date(session.user.freeTrialEndsAt);
+            setFreeTrialEndsAt(trialDate);
+          }
+          if (session?.user?.subscriptionStatus) {
+            setSubscriptionStatus(session.user.subscriptionStatus);
+          }
         }
 
         if (limitsResponse.ok) {
@@ -176,6 +204,64 @@ export function UsageDashboard({ className = '' }: UsageDashboardProps) {
                   All Good
                 </span>
               )}
+              {/* Free Trial Expiration Display */}
+              {userTier === 'FREE' && (
+                (() => {
+                  // Try to get trial end date from state or session
+                  let trialEndDate = freeTrialEndsAt || (session?.user?.freeTrialEndsAt ? new Date(session.user.freeTrialEndsAt) : null);
+                  const currentStatus = subscriptionStatus || (session?.user?.subscriptionStatus as string) || 'ACTIVE';
+                  
+                  
+                  // Show trial expiration if date exists and status is ACTIVE, or if status is EXPIRED
+                  if (currentStatus === 'EXPIRED') {
+                    return (
+                      <span className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Trial Expired
+                      </span>
+                    );
+                  } else if (trialEndDate && currentStatus === 'ACTIVE') {
+                    const now = new Date();
+                    const trialEnd = new Date(trialEndDate);
+                    const isExpired = trialEnd < now;
+                    const daysRemaining = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    if (isExpired) {
+                      return (
+                        <span className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Trial Expired
+                        </span>
+                      );
+                    } else if (daysRemaining <= 3) {
+                      return (
+                        <span className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+                        </span>
+                      );
+                    } else {
+                      // Always show days remaining, not just date
+                      return (
+                        <span className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+                        </span>
+                      );
+                    }
+                  } else if (currentStatus === 'ACTIVE') {
+                    // If FREE tier with ACTIVE status but no trial date, show generic message
+                    // This should not happen for new users, but might for existing users
+                    return (
+                      <span className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        Free Trial Active
+                      </span>
+                    );
+                  }
+                  return null;
+                })()
+              )}
             </div>
           </div>
         </div>
@@ -251,6 +337,115 @@ export function UsageDashboard({ className = '' }: UsageDashboardProps) {
                 );
               })}
             </div>
+
+            {/* Trial Expiration Warning */}
+            {userTier === 'FREE' && (
+              (() => {
+                // Try to get trial end date from state or session
+                const trialEndDate = freeTrialEndsAt || (session?.user?.freeTrialEndsAt ? new Date(session.user.freeTrialEndsAt) : null);
+                const currentStatus = subscriptionStatus || (session?.user?.subscriptionStatus as string) || 'ACTIVE';
+                
+                // Handle expired status
+                if (currentStatus === 'EXPIRED') {
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.4 }}
+                      className="mt-6 p-4 rounded-xl border bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200 dark:border-red-800"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900">
+                          <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1 text-red-900 dark:text-red-100">
+                            Free Trial Has Ended
+                          </h4>
+                          <p className="text-sm mb-3 text-red-700 dark:text-red-300">
+                            Your free trial has expired. Upgrade now to continue using all features and avoid any service interruptions.
+                          </p>
+                          <Link
+                            href="/pricing"
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium bg-red-600 text-white hover:bg-red-700"
+                          >
+                            <Crown className="w-4 h-4" />
+                            Upgrade Now
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                }
+                // Handle active trial with expiration date
+                if (trialEndDate && currentStatus === 'ACTIVE') {
+                  const now = new Date();
+                  const trialEnd = new Date(trialEndDate);
+                  const isExpired = trialEnd < now;
+                  const daysRemaining = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  if (isExpired || daysRemaining <= 3) {
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.4 }}
+                        className={`mt-6 p-4 rounded-xl border ${
+                          isExpired
+                            ? 'bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200 dark:border-red-800'
+                            : 'bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-orange-200 dark:border-orange-800'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            isExpired
+                              ? 'bg-red-100 dark:bg-red-900'
+                              : 'bg-orange-100 dark:bg-orange-900'
+                          }`}>
+                            <Clock className={`w-4 h-4 ${
+                              isExpired
+                                ? 'text-red-600 dark:text-red-400'
+                                : 'text-orange-600 dark:text-orange-400'
+                            }`} />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className={`font-semibold mb-1 ${
+                              isExpired
+                                ? 'text-red-900 dark:text-red-100'
+                                : 'text-orange-900 dark:text-orange-100'
+                            }`}>
+                              {isExpired ? 'Free Trial Has Ended' : `Free Trial Ends in ${daysRemaining} Day${daysRemaining !== 1 ? 's' : ''}`}
+                            </h4>
+                            <p className={`text-sm mb-3 ${
+                              isExpired
+                                ? 'text-red-700 dark:text-red-300'
+                                : 'text-orange-700 dark:text-orange-300'
+                            }`}>
+                              {isExpired
+                                ? `Your free trial ended on ${trialEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Upgrade to continue using all features.`
+                                : `Your free trial ends on ${trialEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Upgrade now to continue without interruption.`
+                              }
+                            </p>
+                            <Link
+                              href="/pricing"
+                              className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
+                                isExpired
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : 'bg-orange-600 text-white hover:bg-orange-700'
+                              }`}
+                            >
+                              <Crown className="w-4 h-4" />
+                              Upgrade Now
+                            </Link>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  }
+                }
+                return null;
+              })()
+            )}
 
             {/* Upgrade Prompt */}
             {hasWarnings && userTier !== 'ENTERPRISE' && (

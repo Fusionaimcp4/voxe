@@ -100,6 +100,10 @@ REDIS_URL=redis://localhost:6379  # If using Redis for rate limiting
 CAPTCHA_ENABLED=true
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-turnstile-key
 TURNSTILE_SECRET_KEY=your-turnstile-secret
+
+# Cron Jobs (for automated tasks)
+CRON_SECRET=your-strong-random-secret-here-min-32-chars  # Required for trial expiration cron job
+SUPPORT_EMAIL=support@mcp4.ai  # Optional, defaults to support@EMAIL_DOMAIN
 ```
 
 ---
@@ -204,6 +208,7 @@ APP_NAME=Voxe
 EMAIL_DOMAIN=mcp4.ai
 DATABASE_URL=postgresql://user:pass@host:5432/voxe_db
 OPENAI_API_KEY=sk-...
+CRON_SECRET=<generate-with-openssl-rand-hex-32>  # For trial expiration cron job
 ```
 
 ---

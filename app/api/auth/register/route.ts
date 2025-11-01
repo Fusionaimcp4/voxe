@@ -38,6 +38,10 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Calculate free trial end date (14 days from now)
+    const freeTrialEndsAt = new Date();
+    freeTrialEndsAt.setDate(freeTrialEndsAt.getDate() + 14);
+
     // Create user with isVerified: false
     const user = await prisma.user.create({
       data: {
@@ -47,6 +51,10 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         role: 'USER',
         isVerified: false, // New users are unverified by default
+        subscriptionTier: 'FREE',
+        subscriptionStatus: 'ACTIVE',
+        freeTrialEndsAt, // Set free trial end date (14 days from now)
+        // Note: subscriptionExpiresAt is only set when users upgrade to paid plans
       },
       select: {
         id: true,
