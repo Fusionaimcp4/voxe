@@ -283,16 +283,29 @@ export class N8nCredentialService {
       });
 
       // Update Fusion nodes in the workflow
+      // Support both node type formats:
+      // - 'CUSTOM.fusionChatModel' (local/older format)
+      // - 'n8n-nodes-fusion.fusionChatModel' (production package-based format)
+      const fusionNodeTypes = [
+        'CUSTOM.fusionChatModel',
+        'n8n-nodes-fusion.fusionChatModel'
+      ];
+      
       let workflowUpdated = false;
       let fusionNodesFound = 0;
       let fusionNodesUpdated = 0;
       
-      console.log(`🔍 [Credential Update] Searching for Fusion nodes (type: 'CUSTOM.fusionChatModel')...`);
+      console.log(`🔍 [Credential Update] Searching for Fusion nodes...`);
+      console.log(`   Checking for node types: ${fusionNodeTypes.join(', ')}`);
       
       for (const node of workflow.nodes || []) {
-        if (node.type === 'CUSTOM.fusionChatModel') {
+        // Check if this node matches any of the Fusion node types
+        const isFusionNode = fusionNodeTypes.includes(node.type);
+        
+        if (isFusionNode) {
           fusionNodesFound++;
           console.log(`   ✅ Found Fusion node #${fusionNodesFound}: "${node.name}" (ID: ${node.id})`);
+          console.log(`      Node type: ${node.type}`);
           
           // Log current credentials if any
           if (node.credentials?.fusionApi) {
@@ -315,7 +328,7 @@ export class N8nCredentialService {
 
       if (fusionNodesFound === 0) {
         console.log(`⚠️  [Credential Update] No Fusion nodes found in workflow ${workflowId}`);
-        console.log(`   Expected node type: 'CUSTOM.fusionChatModel'`);
+        console.log(`   Expected node types: ${fusionNodeTypes.join(' OR ')}`);
         console.log(`   Available node types: ${Array.from(nodeTypesMap.keys()).join(', ')}`);
       } else {
         console.log(`✅ [Credential Update] Found ${fusionNodesFound} Fusion node(s), updated ${fusionNodesUpdated}`);
