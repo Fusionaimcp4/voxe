@@ -31,21 +31,33 @@ export class N8nCredentialService {
    */
   async createFusionCredential(userId: string): Promise<string> {
     try {
+      console.log(`🆕 [Credential Create] Starting credential creation for user: ${userId}`);
+      
+      if (!prisma) {
+        throw new Error('Prisma client not initialized');
+      }
+
       // Get user's Fusion sub-account ID
+      console.log(`📥 [Credential Create] Fetching user Fusion sub-account...`);
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { fusionSubAccountId: true }
       });
 
       if (!user?.fusionSubAccountId) {
+        console.error(`❌ [Credential Create] User does not have Fusion sub-account`);
         throw new Error('User does not have a Fusion sub-account');
       }
 
       const credentialName = `Fusionsubacountid-${user.fusionSubAccountId}`;
+      console.log(`✅ [Credential Create] User Fusion sub-account ID: ${user.fusionSubAccountId}`);
+      console.log(`   Credential name will be: ${credentialName}`);
       
       // Generate API key for the user (never stored)
+      console.log(`🔑 [Credential Create] Generating Fusion API key for sub-account ${user.fusionSubAccountId}...`);
       const apiKeyResponse = await FusionSubAccountService.createApiKey(parseInt(user.fusionSubAccountId), credentialName);
       const apiKey = apiKeyResponse.apiKey;
+      console.log(`✅ [Credential Create] API key generated: ${apiKey.substring(0, 20)}...`);
 
       // Create nodesAccess with nodeType/date format for security
       const currentDate = new Date().toISOString();
@@ -59,6 +71,7 @@ export class N8nCredentialService {
           date: currentDate
         }
       ];
+      console.log(`🔒 [Credential Create] Node access restrictions: ${nodesAccess.map(n => n.nodeType).join(', ')}`);
 
       // Create the credential in n8n
       const credentialData = {
@@ -72,7 +85,10 @@ export class N8nCredentialService {
         nodesAccess: nodesAccess
       };
 
-      console.log(`Creating credential: ${credentialName} with nodeType restrictions`);
+      console.log(`📤 [Credential Create] Creating credential in n8n: ${this.baseUrl}/api/v1/credentials`);
+      console.log(`   Credential name: ${credentialName}`);
+      console.log(`   Type: fusionApi`);
+      console.log(`   Base URL: ${credentialData.data.baseUrl}`);
 
       const response = await fetch(`${this.baseUrl}/api/v1/credentials`, {
         method: 'POST',
@@ -85,16 +101,23 @@ export class N8nCredentialService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Failed to create credential: ${response.status} - ${errorText}`);
+        console.error(`❌ [Credential Create] Failed to create credential: ${response.status} - ${errorText}`);
         throw new Error(`Failed to create n8n credential: ${response.status} ${errorText}`);
       }
 
       const credential: N8nCredentialResponse = await response.json();
-      console.log(`✅ Created Fusion credential: ${credential.id}`);
+      console.log(`✅ [Credential Create] Successfully created Fusion credential in n8n`);
+      console.log(`   Credential ID: ${credential.id}`);
+      console.log(`   Credential name: ${credential.name}`);
+      console.log(`   Created at: ${credential.createdAt}`);
 
       return credential.id;
     } catch (error) {
-      console.error('Failed to create Fusion credential:', error);
+      console.error(`❌ [Credential Create] Error creating Fusion credential:`, error);
+      if (error instanceof Error) {
+        console.error(`   Error message: ${error.message}`);
+        console.error(`   Stack trace: ${error.stack}`);
+      }
       throw error;
     }
   }
@@ -105,7 +128,14 @@ export class N8nCredentialService {
    */
   async getOrCreateFusionCredential(userId: string): Promise<string> {
     try {
+      console.log(`🔍 [Credential Get/Create] Starting for user: ${userId}`);
+      
+      if (!prisma) {
+        throw new Error('Prisma client not initialized');
+      }
+
       // Get user's existing credential info
+      console.log(`📥 [Credential Get/Create] Fetching user from database...`);
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { 
@@ -116,35 +146,41 @@ export class N8nCredentialService {
       });
 
       if (!user?.fusionSubAccountId) {
+        console.error(`❌ [Credential Get/Create] User does not have Fusion sub-account`);
         throw new Error('User does not have a Fusion sub-account');
       }
 
       const credentialName = `Fusionsubacountid-${user.fusionSubAccountId}`;
+      console.log(`✅ [Credential Get/Create] User has Fusion sub-account: ${user.fusionSubAccountId}`);
 
       // Check if user already has a credential
       if (user.fusionCredentialId) {
         try {
-          console.log(`🔍 User has encrypted credential ID in database`);
+          console.log(`🔍 [Credential Get/Create] User has encrypted credential ID in database`);
           console.log(`   Encrypted ID: ${user.fusionCredentialId.substring(0, 20)}...`);
+          console.log(`   Credential name: ${user.fusionCredentialName || 'N/A'}`);
           
           // Decrypt the credential ID from database
+          console.log(`🔓 [Credential Get/Create] Decrypting credential ID...`);
           const decryptedCredentialId = EncryptionService.decrypt(user.fusionCredentialId);
           console.log(`   Decrypted ID: ${decryptedCredentialId}`);
-          console.log(`✅ Reusing existing credential: ${credentialName} (${decryptedCredentialId})`);
+          console.log(`✅ [Credential Get/Create] Reusing existing credential: ${credentialName} (${decryptedCredentialId})`);
           return decryptedCredentialId;
         } catch (error) {
-          console.log(`❌ Failed to decrypt credential: ${error}`);
+          console.log(`❌ [Credential Get/Create] Failed to decrypt credential: ${error}`);
           console.log(`   Will create new credential instead`);
         }
       } else {
-        console.log(`❌ User does not have credential ID in database`);
+        console.log(`❌ [Credential Get/Create] User does not have credential ID in database`);
+        console.log(`   Will create new credential`);
       }
 
       // Create new credential
-      console.log(`Creating new credential for user ${userId}`);
+      console.log(`🆕 [Credential Get/Create] Creating new credential for user ${userId}...`);
       const credentialId = await this.createFusionCredential(userId);
       
       // Store encrypted credential ID in database
+      console.log(`💾 [Credential Get/Create] Storing encrypted credential ID in database...`);
       await prisma.user.update({
         where: { id: userId },
         data: { 
@@ -153,11 +189,17 @@ export class N8nCredentialService {
         }
       });
       
-      console.log(`✅ Stored encrypted credential ID for user ${userId}`);
+      console.log(`✅ [Credential Get/Create] Stored encrypted credential ID for user ${userId}`);
+      console.log(`   Credential name: ${credentialName}`);
+      console.log(`   Credential ID: ${credentialId}`);
       return credentialId;
       
     } catch (error) {
-      console.error('Failed to get or create Fusion credential:', error);
+      console.error(`❌ [Credential Get/Create] Error getting or creating Fusion credential:`, error);
+      if (error instanceof Error) {
+        console.error(`   Error message: ${error.message}`);
+        console.error(`   Stack trace: ${error.stack}`);
+      }
       throw error;
     }
   }
@@ -168,21 +210,27 @@ export class N8nCredentialService {
    */
   async updateWorkflowCredential(workflowId: string, userId: string): Promise<void> {
     try {
-      console.log(`Updating workflow ${workflowId} with user-specific Fusion credentials`);
+      console.log(`🔄 [Credential Update] Starting update for workflow ${workflowId} (user: ${userId})`);
 
       // Get or create credential for this user
+      console.log(`🔍 [Credential Update] Getting or creating Fusion credential for user ${userId}...`);
       const credentialId = await this.getOrCreateFusionCredential(userId);
       
       // Get user info for credential name
+      if (!prisma) {
+        throw new Error('Prisma client not initialized');
+      }
+
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { fusionSubAccountId: true }
       });
       
       const credentialName = `Fusionsubacountid-${user?.fusionSubAccountId}`;
-      console.log(`✅ Using credential: ${credentialName} (ID: ${credentialId})`);
+      console.log(`✅ [Credential Update] Using credential: ${credentialName} (ID: ${credentialId})`);
 
       // Get the workflow from n8n
+      console.log(`📥 [Credential Update] Fetching workflow from n8n: ${this.baseUrl}/api/v1/workflows/${workflowId}`);
       const workflowResponse = await fetch(`${this.baseUrl}/api/v1/workflows/${workflowId}`, {
         method: 'GET',
         headers: {
@@ -191,17 +239,46 @@ export class N8nCredentialService {
       });
 
       if (!workflowResponse.ok) {
-        throw new Error(`Failed to get workflow: ${workflowResponse.status}`);
+        const errorText = await workflowResponse.text().catch(() => 'Unknown error');
+        console.error(`❌ [Credential Update] Failed to fetch workflow: ${workflowResponse.status} - ${errorText}`);
+        throw new Error(`Failed to get workflow: ${workflowResponse.status} - ${errorText}`);
       }
 
       const workflow = await workflowResponse.json();
+      console.log(`✅ [Credential Update] Workflow fetched successfully: "${workflow.name}"`);
+      console.log(`📊 [Credential Update] Workflow has ${workflow.nodes?.length || 0} nodes`);
+
+      // Log all node types for debugging
+      console.log(`🔍 [Credential Update] All node types in workflow:`);
+      const nodeTypesMap = new Map<string, number>();
+      workflow.nodes?.forEach((node: any) => {
+        const count = nodeTypesMap.get(node.type) || 0;
+        nodeTypesMap.set(node.type, count + 1);
+      });
+      nodeTypesMap.forEach((count, type) => {
+        console.log(`   - ${type}: ${count} node(s)`);
+      });
 
       // Update Fusion nodes in the workflow
       let workflowUpdated = false;
+      let fusionNodesFound = 0;
+      let fusionNodesUpdated = 0;
       
-      for (const node of workflow.nodes) {
+      console.log(`🔍 [Credential Update] Searching for Fusion nodes (type: 'CUSTOM.fusionChatModel')...`);
+      
+      for (const node of workflow.nodes || []) {
         if (node.type === 'CUSTOM.fusionChatModel') {
-          console.log(`Updating Fusion node: ${node.name}`);
+          fusionNodesFound++;
+          console.log(`   ✅ Found Fusion node #${fusionNodesFound}: "${node.name}" (ID: ${node.id})`);
+          
+          // Log current credentials if any
+          if (node.credentials?.fusionApi) {
+            console.log(`      Current credentials: ${node.credentials.fusionApi.name} (${node.credentials.fusionApi.id})`);
+          } else {
+            console.log(`      No existing credentials attached`);
+          }
+          
+          console.log(`   🔧 Updating node credentials to: ${credentialName} (${credentialId})`);
           node.credentials = {
             fusionApi: {
               id: credentialId,
@@ -209,10 +286,20 @@ export class N8nCredentialService {
             }
           };
           workflowUpdated = true;
+          fusionNodesUpdated++;
         }
       }
 
+      if (fusionNodesFound === 0) {
+        console.log(`⚠️  [Credential Update] No Fusion nodes found in workflow ${workflowId}`);
+        console.log(`   Expected node type: 'CUSTOM.fusionChatModel'`);
+        console.log(`   Available node types: ${Array.from(nodeTypesMap.keys()).join(', ')}`);
+      } else {
+        console.log(`✅ [Credential Update] Found ${fusionNodesFound} Fusion node(s), updated ${fusionNodesUpdated}`);
+      }
+
       if (workflowUpdated) {
+        console.log(`💾 [Credential Update] Preparing workflow update payload...`);
         // Prepare the workflow data for update
         const workflowUpdateData = {
           name: workflow.name,
@@ -221,6 +308,7 @@ export class N8nCredentialService {
           settings: workflow.settings
         };
 
+        console.log(`📤 [Credential Update] Sending PUT request to update workflow in n8n...`);
         // Save the updated workflow
         const updateResponse = await fetch(`${this.baseUrl}/api/v1/workflows/${workflowId}`, {
           method: 'PUT',
@@ -233,16 +321,26 @@ export class N8nCredentialService {
 
         if (!updateResponse.ok) {
           const errorText = await updateResponse.text();
-          console.error(`Failed to update workflow: ${updateResponse.status} - ${errorText}`);
+          console.error(`❌ [Credential Update] Failed to update workflow: ${updateResponse.status} - ${errorText}`);
           throw new Error(`Failed to update workflow: ${updateResponse.status} - ${errorText}`);
         }
 
-        console.log(`✅ Workflow ${workflowId} updated with credential ${credentialName}`);
+        const updatedWorkflow = await updateResponse.json().catch(() => null);
+        console.log(`✅ [Credential Update] Workflow ${workflowId} successfully updated in n8n`);
+        console.log(`   Workflow name: "${updatedWorkflow?.name || workflow.name}"`);
+        console.log(`   Fusion credentials set: ${credentialName} (${credentialId})`);
+        console.log(`   Nodes updated: ${fusionNodesUpdated}`);
       } else {
-        console.log(`No Fusion nodes found in workflow ${workflowId}`);
+        console.log(`⚠️  [Credential Update] No workflow update performed - no Fusion nodes found`);
+        console.log(`   Workflow ID: ${workflowId}`);
+        console.log(`   This means credentials were created but not attached to any nodes`);
       }
     } catch (error) {
-      console.error('Failed to update workflow credential:', error);
+      console.error(`❌ [Credential Update] Error updating workflow credential:`, error);
+      if (error instanceof Error) {
+        console.error(`   Error message: ${error.message}`);
+        console.error(`   Stack trace: ${error.stack}`);
+      }
       throw error;
     }
   }

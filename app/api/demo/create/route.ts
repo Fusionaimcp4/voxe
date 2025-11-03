@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl, userId);
 
     // Step 7: Render demo HTML
-    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatwoot.mcp4.ai';
+    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai';
     const demoHTML = renderDemoHTML({
       businessName,
       slug,
