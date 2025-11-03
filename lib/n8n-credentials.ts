@@ -178,20 +178,36 @@ export class N8nCredentialService {
       // Create new credential
       console.log(`🆕 [Credential Get/Create] Creating new credential for user ${userId}...`);
       const credentialId = await this.createFusionCredential(userId);
+      console.log(`✅ [Credential Get/Create] Credential created successfully, ID: ${credentialId}`);
       
       // Store encrypted credential ID in database
       console.log(`💾 [Credential Get/Create] Storing encrypted credential ID in database...`);
-      await prisma.user.update({
-        where: { id: userId },
-        data: { 
-          fusionCredentialId: EncryptionService.encrypt(credentialId),
-          fusionCredentialName: credentialName
+      try {
+        const encryptedId = EncryptionService.encrypt(credentialId);
+        console.log(`   Encrypted credential ID (first 20 chars): ${encryptedId.substring(0, 20)}...`);
+        
+        await prisma.user.update({
+          where: { id: userId },
+          data: { 
+            fusionCredentialId: encryptedId,
+            fusionCredentialName: credentialName
+          }
+        });
+        
+        console.log(`✅ [Credential Get/Create] Stored encrypted credential ID for user ${userId}`);
+        console.log(`   Credential name: ${credentialName}`);
+        console.log(`   Credential ID: ${credentialId}`);
+      } catch (dbError) {
+        console.error(`❌ [Credential Get/Create] Failed to store credential in database:`, dbError);
+        if (dbError instanceof Error) {
+          console.error(`   Error message: ${dbError.message}`);
+          console.error(`   Stack trace: ${dbError.stack}`);
         }
-      });
+        // Still return the credential ID even if database storage fails
+        // The credential was created in n8n, so it can still be used
+        console.log(`⚠️  [Credential Get/Create] Continuing despite database storage failure`);
+      }
       
-      console.log(`✅ [Credential Get/Create] Stored encrypted credential ID for user ${userId}`);
-      console.log(`   Credential name: ${credentialName}`);
-      console.log(`   Credential ID: ${credentialId}`);
       return credentialId;
       
     } catch (error) {
@@ -215,18 +231,25 @@ export class N8nCredentialService {
       // Get or create credential for this user
       console.log(`🔍 [Credential Update] Getting or creating Fusion credential for user ${userId}...`);
       const credentialId = await this.getOrCreateFusionCredential(userId);
+      console.log(`✅ [Credential Update] Got credential ID: ${credentialId}, continuing to workflow update...`);
       
       // Get user info for credential name
       if (!prisma) {
         throw new Error('Prisma client not initialized');
       }
 
+      console.log(`📥 [Credential Update] Fetching user info from database for credential name...`);
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { fusionSubAccountId: true }
       });
       
-      const credentialName = `Fusionsubacountid-${user?.fusionSubAccountId}`;
+      if (!user?.fusionSubAccountId) {
+        console.error(`❌ [Credential Update] User ${userId} does not have Fusion sub-account ID`);
+        throw new Error('User does not have a Fusion sub-account ID');
+      }
+      
+      const credentialName = `Fusionsubacountid-${user.fusionSubAccountId}`;
       console.log(`✅ [Credential Update] Using credential: ${credentialName} (ID: ${credentialId})`);
 
       // Get the workflow from n8n
