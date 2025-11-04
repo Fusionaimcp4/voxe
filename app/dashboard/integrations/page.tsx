@@ -48,6 +48,7 @@ export default function IntegrationsPage() {
   const [widgetPosition, setWidgetPosition] = useState<'left' | 'right'>('right');
   const [widgetType, setWidgetType] = useState<'standard' | 'expanded_bubble'>('standard');
   const [availableChats, setAvailableChats] = useState<Array<{id: string, name: string, websiteToken: string, baseUrl: string}>>([]);
+  const [agentLimit, setAgentLimit] = useState<number>(1);
 
   const userTier = (session?.user?.subscriptionTier as SubscriptionTier) || 'FREE';
   const isPaidUser = userTier !== 'FREE';
@@ -55,7 +56,29 @@ export default function IntegrationsPage() {
   useEffect(() => {
     fetchIntegrations();
     fetchAvailableChats();
-  }, []);
+    fetchTierLimits();
+  }, [userTier]);
+
+  const fetchTierLimits = async () => {
+    try {
+      const response = await fetch(`/api/dashboard/tier-limits?tier=${userTier}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAgentLimit(data.limits?.maxHelpdeskAgents || 1);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tier limits:', error);
+      // Fallback to default limits
+      const fallbackLimits: Record<string, number> = {
+        FREE: 1,
+        STARTER: 2,
+        TEAM: 3,
+        BUSINESS: 5,
+        ENTERPRISE: -1
+      };
+      setAgentLimit(fallbackLimits[userTier] || 1);
+    }
+  };
 
   const fetchAvailableChats = async () => {
     try {
@@ -768,7 +791,7 @@ export default function IntegrationsPage() {
         onClose={() => setShowHelpdeskModal(false)}
         userEmail={session?.user?.email || ''}
         userTier={userTier}
-        agentLimit={userTier === 'FREE' ? 1 : userTier === 'PRO' ? 3 : userTier === 'PRO_PLUS' ? 5 : -1}
+        agentLimit={agentLimit}
       />
     </div>
   );

@@ -364,14 +364,18 @@ export function generatePlusAddressedEmail(
 
 /**
  * Get tier-based agent limits
+ * @deprecated Use getDynamicTierLimits from lib/dynamic-tier-limits.ts instead
+ * This function is kept for backward compatibility but should be replaced
  */
 export function getAgentLimitForTier(tier: string): number {
   switch (tier) {
     case 'FREE':
       return 1;
-    case 'PRO':
+    case 'STARTER':
+      return 2;
+    case 'TEAM':
       return 3;
-    case 'PRO_PLUS':
+    case 'BUSINESS':
       return 5;
     case 'ENTERPRISE':
       return -1; // Unlimited

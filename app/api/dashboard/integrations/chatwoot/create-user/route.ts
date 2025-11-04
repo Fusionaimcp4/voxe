@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { createChatwootUser, generatePlusAddressedEmail, getAgentLimitForTier } from '@/lib/chatwoot_helpdesk';
+import { createChatwootUser, generatePlusAddressedEmail } from '@/lib/chatwoot_helpdesk';
+import { getDynamicTierLimits } from '@/lib/dynamic-tier-limits';
 
 export async function POST(request: NextRequest) {
   console.log('🚀 POST /api/dashboard/integrations/chatwoot/create-user called');
@@ -65,9 +66,10 @@ export async function POST(request: NextRequest) {
     const subscriptionTier = session.user.subscriptionTier || 'FREE';
     console.log('✅ Subscription tier from session:', subscriptionTier);
 
-    // Check tier limit
+    // Check tier limit using dynamic tier limits system
     console.log('🔍 Checking tier limits...');
-    const agentLimit = getAgentLimitForTier(subscriptionTier);
+    const tierLimits = await getDynamicTierLimits(subscriptionTier as any);
+    const agentLimit = tierLimits.maxHelpdeskAgents;
     console.log('📊 Agent limit for tier:', agentLimit);
     
     const existingAgents = await prisma.helpdeskUser.count({
