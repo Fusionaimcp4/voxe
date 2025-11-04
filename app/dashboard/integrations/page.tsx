@@ -91,7 +91,7 @@ export default function IntegrationsPage() {
           id: demo.id,
           name: demo.businessName,
           websiteToken: demo.chatwootWebsiteToken,
-          baseUrl: 'https://chatwoot.mcp4.ai' // Default Chatwoot base URL
+          baseUrl: 'https://chatvoxe.mcp4.ai' // Default Chatwoot base URL
         })).filter((chat: any) => chat.websiteToken); // Only include demos with website tokens
         
         setAvailableChats(chats);
