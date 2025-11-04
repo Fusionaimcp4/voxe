@@ -65,7 +65,7 @@ EMAIL_FROM=Voxe <no-reply@mcp4.ai>
 
 ```bash
 # Chatwoot (if using)
-CHATWOOT_BASE_URL=https://chatwoot.mcp4.ai
+CHATWOOT_BASE_URL=https://chatvoxe.mcp4.ai
 CHATWOOT_ACCOUNT_ID=your-account-id
 CHATWOOT_API_KEY=your-api-key
 
