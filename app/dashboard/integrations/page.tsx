@@ -368,18 +368,19 @@ export default function IntegrationsPage() {
             </h1>
             <div className={`px-3 py-1 rounded-full text-xs font-medium ${
               userTier === 'FREE' ? 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300' :
-              userTier === 'PRO' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
-              userTier === 'PRO_PLUS' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' :
+              userTier === 'STARTER' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
+              userTier === 'TEAM' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' :
+              userTier === 'BUSINESS' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300' :
               'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 dark:from-amber-900 dark:to-orange-900 dark:text-amber-300'
             }`}>
-              {userTier === 'PRO_PLUS' ? 'PRO+' : userTier}
+              {userTier}
             </div>
           </div>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
             Connect external services to enhance your AI workflows
             {!isPaidUser && (
               <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-                • Some features require PRO+ plans
+                • Some features require paid plans
               </span>
             )}
           </p>
@@ -729,7 +730,7 @@ export default function IntegrationsPage() {
 {`<script>
   window.chatwootSettings = {"position":"${widgetPosition}","type":"${widgetType}","launcherTitle":"Chat with us"};
   (function(d,t) {
-    var BASE_URL = "${availableChats.find(chat => chat.id === selectedChat)?.baseUrl || 'https://chatwoot.mcp4.ai'}";
+    var BASE_URL = "${availableChats.find(chat => chat.id === selectedChat)?.baseUrl || 'https://chatvoxe.mcp4.ai'}";
     var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
     g.src = BASE_URL + "/packs/js/sdk.js";
     g.async = true;
