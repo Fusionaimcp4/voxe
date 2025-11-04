@@ -69,7 +69,7 @@ export default function RootLayout({
                 g.onload=function(){
                   if (window.chatwootSDK) {
                     window.chatwootSDK.run({
-                      websiteToken: 'eBcNowkHQqHfS6bu8AzzMHSy',
+                      websiteToken: '7LqvDSaNM9GJksLRzDd6yXzY',
                       baseUrl: BASE_URL
                     });
                   }
