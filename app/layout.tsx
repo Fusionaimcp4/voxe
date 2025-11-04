@@ -61,7 +61,7 @@ export default function RootLayout({
             // Only load Chatwoot on non-demo pages to avoid conflicts
             if (!window.location.pathname.startsWith('/demo/')) {
               function initChatwoot() {
-                var BASE_URL="${process.env.CHATWOOT_BASE_URL || 'https://chatwoot.mcp4.ai'}";
+                var BASE_URL="${process.env.CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai'}";
                 var g=document.createElement('script'),s=document.getElementsByTagName('script')[0];
                 g.src=BASE_URL+"/packs/js/sdk.js";
                 g.async = true;
@@ -69,7 +69,7 @@ export default function RootLayout({
                 g.onload=function(){
                   if (window.chatwootSDK) {
                     window.chatwootSDK.run({
-                      websiteToken: 'uXS1FgquoQAwytV6Z2XLivuX',
+                      websiteToken: 'eBcNowkHQqHfS6bu8AzzMHSy',
                       baseUrl: BASE_URL
                     });
                   }
