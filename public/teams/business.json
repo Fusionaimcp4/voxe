@@ -1,0 +1,8 @@
+[
+    { "name": "Customer Support", "description": "First line for testers & paying users" },
+    { "name": "Sales & Partnerships", "description": "Leads, investors, partnerships" },
+    { "name": "Technical Support / Devops", "description": "API/integration issues, escalations" },
+    { "name": "Billing & Accounts", "description": "Payments, refunds, invoices (BTCPay)" },
+    { "name": "Product Feedback & Community", "description": "Feature requests, early adopters" }
+  ]
+  

@@ -287,6 +287,172 @@ export async function getUserChatwootConfig(
 }
 
 /**
+ * Deactivate CHATVOXE integration and clear sensitive credentials
+ * This is called when user switches from CHATVOXE to their own Chatwoot instance
+ * 
+ * @param userId - User ID
+ * @returns Information about the deactivated integration, or null if none found
+ */
+export async function deactivateChatvoxeIntegration(
+  userId: string
+): Promise<{ id: string; name: string; accountId?: string; baseUrl?: string } | null> {
+  try {
+    const { prisma } = await import('./../../lib/prisma');
+    
+    if (!prisma) {
+      console.warn('[deactivateChatvoxeIntegration] Prisma not available');
+      return null;
+    }
+    
+    // Find active CHATVOXE integration
+    // First try to find by name
+    let chatvoxeIntegration = await prisma.integration.findFirst({
+      where: {
+        userId,
+        type: 'CRM',
+        isActive: true,
+        name: 'CHATVOXE',
+      },
+    });
+    
+    // If not found by name, try to find by voxeCreated flag in configuration
+    if (!chatvoxeIntegration) {
+      const allActiveIntegrations = await prisma.integration.findMany({
+        where: {
+          userId,
+          type: 'CRM',
+          isActive: true,
+        },
+      });
+      
+      // Check each integration's configuration for voxeCreated flag
+      for (const integration of allActiveIntegrations) {
+        const config = integration.configuration as any;
+        if (config?.voxeCreated === true) {
+          chatvoxeIntegration = integration;
+          break;
+        }
+      }
+    }
+    
+    if (!chatvoxeIntegration) {
+      console.log(`[deactivateChatvoxeIntegration] No active CHATVOXE integration found for user ${userId}`);
+      return null;
+    }
+    
+    const config = chatvoxeIntegration.configuration as any;
+    const accountId = config?.accountId;
+    const baseUrl = config?.baseUrl;
+    
+    // Clear sensitive credentials (apiKey) but keep baseUrl and accountId for reference
+    const updatedConfig = { ...config };
+    if (updatedConfig.apiKey) {
+      delete updatedConfig.apiKey;
+    }
+    
+    // Deactivate the integration
+    await prisma.integration.update({
+      where: { id: chatvoxeIntegration.id },
+      data: {
+        isActive: false,
+        configuration: updatedConfig,
+      },
+    });
+    
+    console.log(`[deactivateChatvoxeIntegration] ✅ Deactivated CHATVOXE integration ${chatvoxeIntegration.id} for user ${userId}`);
+    console.log(`[deactivateChatvoxeIntegration] Cleared credentials, preserved baseUrl: ${baseUrl}, accountId: ${accountId}`);
+    
+    return {
+      id: chatvoxeIntegration.id,
+      name: chatvoxeIntegration.name,
+      accountId,
+      baseUrl,
+    };
+  } catch (error) {
+    console.error('[deactivateChatvoxeIntegration] Error deactivating CHATVOXE integration:', error);
+    return null;
+  }
+}
+
+/**
+ * Deactivate all active helpdesk integrations for a user (except the one being activated)
+ * This ensures only one helpdesk integration is active at a time
+ * 
+ * @param userId - User ID
+ * @param excludeIntegrationId - Integration ID to exclude from deactivation (the one being activated)
+ * @returns Array of deactivated integration IDs
+ */
+export async function deactivateAllActiveHelpdeskIntegrations(
+  userId: string,
+  excludeIntegrationId?: string
+): Promise<string[]> {
+  try {
+    const { prisma } = await import('./../../lib/prisma');
+    
+    if (!prisma) {
+      console.warn('[deactivateAllActiveHelpdeskIntegrations] Prisma not available');
+      return [];
+    }
+    
+    // Find all active CRM integrations for the user
+    const activeIntegrations = await prisma.integration.findMany({
+      where: {
+        userId,
+        type: 'CRM',
+        isActive: true,
+        ...(excludeIntegrationId && {
+          id: { not: excludeIntegrationId },
+        }),
+      },
+    });
+    
+    if (activeIntegrations.length === 0) {
+      console.log(`[deactivateAllActiveHelpdeskIntegrations] No active helpdesk integrations to deactivate for user ${userId}`);
+      return [];
+    }
+    
+    const deactivatedIds: string[] = [];
+    
+    // Deactivate each integration and clear sensitive credentials
+    for (const integration of activeIntegrations) {
+      const config = integration.configuration as any;
+      const updatedConfig = { ...config };
+      
+      // Clear sensitive credentials based on provider type
+      if (config?.provider === 'CHATWOOT' && updatedConfig.apiKey) {
+        delete updatedConfig.apiKey;
+      } else if (config?.provider === 'SALESFORCE') {
+        if (updatedConfig.clientSecret) delete updatedConfig.clientSecret;
+        if (updatedConfig.securityToken) delete updatedConfig.securityToken;
+      } else if (config?.provider === 'HUBSPOT' && updatedConfig.apiKey) {
+        delete updatedConfig.apiKey;
+      } else if (config?.provider === 'CUSTOM' && updatedConfig.credentials) {
+        delete updatedConfig.credentials;
+      }
+      
+      // Deactivate the integration
+      await prisma.integration.update({
+        where: { id: integration.id },
+        data: {
+          isActive: false,
+          configuration: updatedConfig,
+        },
+      });
+      
+      deactivatedIds.push(integration.id);
+      console.log(`[deactivateAllActiveHelpdeskIntegrations] ✅ Deactivated helpdesk integration ${integration.id} (${integration.name}) for user ${userId}`);
+    }
+    
+    console.log(`[deactivateAllActiveHelpdeskIntegrations] Deactivated ${deactivatedIds.length} helpdesk integration(s) for user ${userId}`);
+    
+    return deactivatedIds;
+  } catch (error) {
+    console.error('[deactivateAllActiveHelpdeskIntegrations] Error deactivating helpdesk integrations:', error);
+    return [];
+  }
+}
+
+/**
  * Helper to get decrypted configuration
  */
 export function decryptConfiguration(config: CRMConfiguration): CRMConfiguration {

@@ -247,11 +247,49 @@ export async function POST(request: NextRequest) {
       // 3) Trigger n8n workflow duplication via webhook (fire-and-forget)
       if (botAccessToken) {
         // chatwootBaseUrl is available from Step 7 above
+        
+        // Get all teams from user's active helpdesk integration
+        let teams: Array<{ id: number; name: string }> | undefined;
+        
+        if (userId) {
+          try {
+            // Get active Chatwoot integration to find created teams
+            const { prisma } = await import('@/lib/prisma');
+            const activeIntegration = await prisma.integration.findFirst({
+              where: {
+                userId,
+                type: 'CRM',
+                isActive: true,
+              },
+            });
+            
+            if (activeIntegration) {
+              const config = activeIntegration.configuration as any;
+              // Check if teams were created and get all teams
+              if (config?.createdTeams && Array.isArray(config.createdTeams) && config.createdTeams.length > 0) {
+                teams = config.createdTeams.map((team: any) => ({
+                  id: team.id,
+                  name: team.name
+                }));
+                logger.info(`Found ${teams.length} teams for escalation:`, teams.map(t => `${t.name} (ID: ${t.id})`).join(', '));
+              } else {
+                logger.debug(`No teams found in integration config, skipping teams in payload`);
+              }
+            } else {
+              logger.debug(`No active helpdesk integration found, skipping teams in payload`);
+            }
+          } catch (teamError) {
+            logger.warn(`Failed to get team info, continuing without teams:`, teamError);
+            // Continue without team info - not critical
+          }
+        }
+        
         workflowDuplicationResult = await duplicateWorkflowViaWebhook(
           businessName,
           botAccessToken,
           finalSystemMessage,
-          chatwootBaseUrl // Pass the Chatwoot base URL (from user config or env)
+          chatwootBaseUrl, // Pass the Chatwoot base URL (from user config or env)
+          teams // Pass all teams if available
         );
       } else {
         logger.warn('No bot access token available, skipping workflow duplication');

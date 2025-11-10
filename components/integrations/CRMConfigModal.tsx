@@ -218,8 +218,8 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
         </div>
 
         <div className="space-y-6">
-          {/* Create Voxe Helpdesk Button */}
-          {!existingIntegration && !hasChatvoxeIntegration && (
+          {/* Create Voxe Helpdesk Section */}
+          {!existingIntegration && (
             <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -231,26 +231,36 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
                   </p>
                 </div>
               </div>
-              <button
-                onClick={handleCreateVoxeHelpdesk}
-                disabled={isProvisioning || isSaving}
-                className="w-full px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 font-medium flex items-center justify-center gap-2"
-              >
-                {isProvisioning ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Setting up your chatvoxe Helpdesk... please wait.</span>
-                  </>
-                ) : (
-                  <>
-                    <span>+</span>
-                    <span>Create chatvoxe Helpdesk</span>
-                  </>
-                )}
-              </button>
+              {/* Only show button if user doesn't have CHATVOXE integration */}
+              {!hasChatvoxeIntegration && (
+                <button
+                  onClick={handleCreateVoxeHelpdesk}
+                  disabled={isProvisioning || isSaving}
+                  className="w-full px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 font-medium flex items-center justify-center gap-2"
+                >
+                  {isProvisioning ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Setting up your chatvoxe Helpdesk... please wait.</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>+</span>
+                      <span>Create chatvoxe Helpdesk</span>
+                    </>
+                  )}
+                </button>
+              )}
+              {hasChatvoxeIntegration && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                  <p className="text-blue-700 dark:text-blue-400 text-sm">
+                    ℹ️ You already have a chatvoxe Helpdesk set up. You can configure it below or connect your own Chatwoot instance.
+                  </p>
+                </div>
+              )}
               {provisioningSuccess && (
                 <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
                   <div className="text-green-700 dark:text-green-400 text-sm whitespace-pre-line">

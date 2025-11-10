@@ -5,6 +5,8 @@ import { authOptions } from '@/lib/auth';
 import { encrypt } from '@/lib/integrations/encryption';
 import { CreateIntegrationRequest, CRMConfiguration } from '@/lib/integrations/types';
 import { getCRMFormFields } from '@/lib/integrations/crm-providers';
+import { deactivateChatvoxeIntegration } from '@/lib/integrations/crm-service';
+import { canPerformAction, trackUsage } from '@/lib/usage-tracking';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,11 +31,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check tier limits before proceeding (enforces maxIntegrations from tier limits table)
+    const usageCheck = await canPerformAction(userId, 'create_integration');
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Tier limit exceeded',
+          message: usageCheck.reason,
+          usage: usageCheck.usage,
+          upgradeRequired: true
+        },
+        { status: 403 }
+      );
+    }
+
     // Encrypt sensitive fields in configuration
     let processedConfiguration = { ...body.configuration };
+    let switchedFromChatvoxe = false;
+    let deactivatedIntegration = null;
     
     if (body.type === 'CRM') {
       const helpdeskConfig = body.configuration as CRMConfiguration;
+      
+      // Check if user is switching from CHATVOXE to their own Chatwoot instance
+      if (helpdeskConfig.provider === 'CHATWOOT') {
+        const chatvoxeInfo = await deactivateChatvoxeIntegration(userId);
+        if (chatvoxeInfo) {
+          switchedFromChatvoxe = true;
+          deactivatedIntegration = chatvoxeInfo;
+          console.log(`[create-integration] User ${userId} is switching from CHATVOXE to their own Chatwoot instance`);
+          console.log(`[create-integration] Deactivated CHATVOXE integration: ${chatvoxeInfo.id}`);
+        }
+      }
       
       // Get form fields to determine which fields are sensitive
       const formFields = getCRMFormFields(helpdeskConfig.provider);
@@ -73,6 +102,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Track usage (counts towards tier limit)
+    await trackUsage(userId, 'integration_created');
+
     return NextResponse.json({
       success: true,
       integration: {
@@ -82,6 +114,13 @@ export async function POST(request: NextRequest) {
         isActive: integration.isActive,
         createdAt: integration.createdAt,
       },
+      ...(switchedFromChatvoxe && {
+        switchedFromChatvoxe: true,
+        deactivatedIntegration: {
+          id: deactivatedIntegration.id,
+          name: deactivatedIntegration.name,
+        },
+      }),
     });
 
   } catch (error) {

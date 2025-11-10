@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getUserChatwootConfig } from '@/lib/integrations/crm-service';
+import { canPerformAction, trackUsage } from '@/lib/usage-tracking';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -54,7 +55,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 2: Check existing Chatwoot integration (limit to 1 per user)
+    // Step 2: Check tier limits before proceeding (enforces maxIntegrations from tier limits table)
+    const usageCheck = await canPerformAction(userId, 'create_integration');
+    if (!usageCheck.allowed) {
+      return NextResponse.json(
+        {
+          status: 'error',
+          error: 'Tier limit exceeded',
+          message: usageCheck.reason,
+          usage: usageCheck.usage,
+          upgradeRequired: true,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Step 2.5: Check existing Chatwoot integration (limit to 1 per user)
     // Check database first for active Chatwoot integrations
     const existingIntegration = await prisma.integration.findFirst({
       where: {
@@ -502,6 +518,9 @@ export async function POST(request: NextRequest) {
       hasApiToken: !!userApiToken,
       tier: userTier,
     });
+
+    // Track usage (counts towards tier limit)
+    await trackUsage(userId, 'integration_created');
 
     // Step 10: Return success response
     const successMessage = userApiToken 

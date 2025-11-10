@@ -361,11 +361,48 @@ export async function POST(request: NextRequest) {
       if (botAccessToken) {
         // Get Chatwoot base URL from user config or env var (already fetched earlier)
         // chatwootBaseUrl is available from Step 7 above
+        
+        // Get all teams from user's active helpdesk integration
+        let teams: Array<{ id: number; name: string }> | undefined;
+        
+        if (userId) {
+          try {
+            // Get active Chatwoot integration to find created teams
+            const activeIntegration = await prisma.integration.findFirst({
+              where: {
+                userId,
+                type: 'CRM',
+                isActive: true,
+              },
+            });
+            
+            if (activeIntegration) {
+              const config = activeIntegration.configuration as any;
+              // Check if teams were created and get all teams
+              if (config?.createdTeams && Array.isArray(config.createdTeams) && config.createdTeams.length > 0) {
+                teams = config.createdTeams.map((team: any) => ({
+                  id: team.id,
+                  name: team.name
+                }));
+                console.log(`[demo/create] Found ${teams.length} teams for escalation:`, teams.map(t => `${t.name} (ID: ${t.id})`).join(', '));
+              } else {
+                console.log(`[demo/create] No teams found in integration config, skipping teams in payload`);
+              }
+            } else {
+              console.log(`[demo/create] No active helpdesk integration found, skipping teams in payload`);
+            }
+          } catch (teamError) {
+            console.warn(`[demo/create] Failed to get team info, continuing without teams:`, teamError);
+            // Continue without team info - not critical
+          }
+        }
+        
         workflowDuplicationResult = await duplicateWorkflowViaWebhook(
           businessName,
           botAccessToken,
           finalSystemMessage,
-          chatwootBaseUrl // Pass the Chatwoot base URL (from user config or env)
+          chatwootBaseUrl, // Pass the Chatwoot base URL (from user config or env)
+          teams // Pass all teams if available
         );
 
         // If workflow duplication succeeded and we got a workflow ID, save it first

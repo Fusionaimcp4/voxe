@@ -242,6 +242,17 @@ export default function IntegrationsPage() {
       }
 
       if (response.ok) {
+        const result = await response.json();
+        
+        // Check if user switched from CHATVOXE
+        if (result.switchedFromChatvoxe) {
+          notifications.success(
+            `✅ Your Chatwoot integration has been connected successfully.\n\nℹ️ Your previous chatvoxe Helpdesk has been deactivated. The Chatwoot account is still available, but the integration is now inactive. You can reactivate it later if needed.`
+          );
+        } else {
+          notifications.success('Integration saved successfully');
+        }
+        
         await fetchIntegrations();
         setShowCRMModal(false);
         setEditingIntegration(null);
@@ -794,7 +805,6 @@ export default function IntegrationsPage() {
         onRefresh={fetchIntegrations}
         hasChatvoxeIntegration={integrations.some((i: Integration) => 
           i.type === 'CRM' && 
-          i.isActive && 
           (i.name === 'CHATVOXE' || (i.configuration as any)?.voxeCreated === true)
         )}
         existingIntegration={editingIntegration ? {

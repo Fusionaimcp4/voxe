@@ -8,6 +8,7 @@ interface DuplicateAgentPayload {
   apiKey: string;
   systemMessage: string;
   chatwootBaseUrl?: string; // Optional - user's Chatwoot base URL or env fallback
+  teams?: Array<{ id: number; name: string }>; // Optional - all teams with their IDs
 }
 
 /**
@@ -18,12 +19,14 @@ interface DuplicateAgentPayload {
  * @param apiKey - The bot access token from Chatwoot
  * @param systemMessage - The complete system message content
  * @param chatwootBaseUrl - Optional Chatwoot base URL (from user config or env var)
+ * @param teams - Optional array of all teams with their IDs and names
  */
 export async function duplicateWorkflowViaWebhook(
   businessName: string,
   apiKey: string,
   systemMessage: string,
-  chatwootBaseUrl?: string
+  chatwootBaseUrl?: string,
+  teams?: Array<{ id: number; name: string }>
 ): Promise<{ success: boolean; workflowId?: string; error?: string }> {
   const endpoint = process.env.N8N_DUPLICATE_ENDPOINT;
   
@@ -40,7 +43,8 @@ export async function duplicateWorkflowViaWebhook(
       businessName,
       apiKey,
       systemMessage,
-      ...(chatwootBaseUrl && { chatwootBaseUrl }) // Only include if provided
+      ...(chatwootBaseUrl && { chatwootBaseUrl }), // Only include if provided
+      ...(teams && teams.length > 0 && { teams }) // Only include if provided and not empty
     };
 
     const response = await fetch(endpoint, {
