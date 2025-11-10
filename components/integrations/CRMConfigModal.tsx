@@ -21,7 +21,6 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration }:
   const [selectedProvider, setSelectedProvider] = useState<CRMProvider>(
     existingIntegration?.configuration.provider || 'CHATWOOT'
   );
-  const [integrationName, setIntegrationName] = useState(existingIntegration?.name || '');
   const [configuration, setConfiguration] = useState<Partial<CRMConfiguration>>(
     existingIntegration?.configuration || {}
   );
@@ -84,15 +83,14 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration }:
   };
 
   const handleSave = async () => {
-    if (!integrationName.trim()) {
-      setError('Integration name is required');
-      return;
-    }
-
     setIsSaving(true);
     setError(null);
 
     try {
+      // Automatically set integration name to the provider name
+      // For existing integrations, keep the existing name; for new ones, use provider name
+      const integrationName = existingIntegration?.name || providerInfo.name;
+      
       await onSave(integrationName, {
         ...configuration,
         provider: selectedProvider,
@@ -112,7 +110,7 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration }:
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {existingIntegration ? 'Edit' : 'Add'} CRM Integration
+            {existingIntegration ? 'Edit' : 'Add'} Helpdesk Setup
           </h2>
           <button
             onClick={onClose}
@@ -126,29 +124,11 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration }:
         </div>
 
         <div className="space-y-6">
-          {/* Integration Name */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Integration Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={integrationName}
-              onChange={(e) => setIntegrationName(e.target.value)}
-              className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:border-emerald-500 transition-colors text-slate-900 dark:text-slate-100"
-              placeholder="My Chatwoot Integration"
-              disabled={isSaving}
-            />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              A friendly name to identify this integration
-            </p>
-          </div>
-
-          {/* CRM Provider Selection */}
+          {/* Helpdesk Provider Selection */}
           {!existingIntegration && (
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">
-                CRM Provider <span className="text-red-500">*</span>
+                Helpdesk Provider <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {allProviders.map((provider) => (
@@ -260,7 +240,7 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration }:
             </button>
             <button
               onClick={handleSave}
-              disabled={isSaving || !integrationName.trim() || !['CHATWOOT', 'CUSTOM'].includes(selectedProvider)}
+              disabled={isSaving || !['CHATWOOT', 'CUSTOM'].includes(selectedProvider)}
               className="w-full sm:w-auto px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 min-h-[48px]"
             >
               {isSaving ? 'Saving...' : (existingIntegration ? 'Update' : 'Save') + ' Integration'}

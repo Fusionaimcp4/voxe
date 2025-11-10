@@ -3,6 +3,7 @@ import { fetchAndClean } from '@/lib/scrape';
 import { generateKBFromWebsite } from '@/lib/llm';
 import { mergeKBIntoSkeleton, injectWebsiteLinksSection, CanonicalUrl } from '@/lib/merge';
 import { createWebsiteInbox } from '@/lib/chatwoot';
+import { getUserChatwootConfig } from '@/lib/integrations/crm-service';
 import { renderDemoHTML } from '@/lib/renderDemo';
 import { slugify } from '@/lib/slug';
 import { writeTextFile, readTextFileIfExists, atomicJSONUpdate } from '@/lib/fsutils';
@@ -225,7 +226,25 @@ export async function POST(request: NextRequest) {
     const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl, userId);
 
     // Step 7: Render demo HTML
-    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai';
+    // Get Chatwoot base URL from user config if available, otherwise use env var
+    let chatwootBaseUrl = process.env.CHATWOOT_BASE_URL;
+    if (userId) {
+      try {
+        const userChatwootConfig = await getUserChatwootConfig(userId);
+        if (userChatwootConfig) {
+          chatwootBaseUrl = userChatwootConfig.baseUrl;
+        }
+      } catch (error) {
+        console.warn('Failed to get user Chatwoot config for demo HTML, using env var:', error);
+      }
+    }
+    
+    if (!chatwootBaseUrl) {
+      throw new Error('CHATWOOT_BASE_URL environment variable is required. Please configure it in your .env file or set up a Chatwoot integration.');
+    }
+    
+    // Normalize baseUrl to remove trailing slash
+    chatwootBaseUrl = chatwootBaseUrl.replace(/\/+$/, '');
     const demoHTML = renderDemoHTML({
       businessName,
       slug,
@@ -340,10 +359,13 @@ export async function POST(request: NextRequest) {
 
       // Trigger n8n workflow duplication
       if (botAccessToken) {
+        // Get Chatwoot base URL from user config or env var (already fetched earlier)
+        // chatwootBaseUrl is available from Step 7 above
         workflowDuplicationResult = await duplicateWorkflowViaWebhook(
           businessName,
           botAccessToken,
-          finalSystemMessage
+          finalSystemMessage,
+          chatwootBaseUrl // Pass the Chatwoot base URL (from user config or env)
         );
 
         // If workflow duplication succeeded and we got a workflow ID, save it first

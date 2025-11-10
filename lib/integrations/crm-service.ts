@@ -1,6 +1,6 @@
 /**
- * CRM Service Layer
- * Handles connections and operations for different CRM providers
+ * Helpdesk Service Layer
+ * Handles connections and operations for different helpdesk providers
  */
 
 import { 
@@ -121,7 +121,7 @@ async function testHubSpotConnection(): Promise<TestConnectionResponse> {
 }
 
 /**
- * Test custom CRM connection
+ * Test custom helpdesk connection
  */
 async function testCustomCRMConnection(config: any): Promise<TestConnectionResponse> {
   try {
@@ -178,14 +178,14 @@ async function testCustomCRMConnection(config: any): Promise<TestConnectionRespo
     if (!response.ok) {
       return {
         success: false,
-        message: 'Failed to connect to custom CRM',
+        message: 'Failed to connect to custom helpdesk',
         error: `HTTP ${response.status}: ${response.statusText}`,
       };
     }
     
     return {
       success: true,
-      message: 'Successfully connected to custom CRM',
+      message: 'Successfully connected to custom helpdesk',
       details: {
         features: ['Custom API Integration'],
       },
@@ -193,14 +193,14 @@ async function testCustomCRMConnection(config: any): Promise<TestConnectionRespo
   } catch (error) {
     return {
       success: false,
-      message: 'Failed to connect to custom CRM',
+      message: 'Failed to connect to custom helpdesk',
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
 
 /**
- * Main function to test CRM connection
+ * Main function to test helpdesk connection
  */
 export async function testCRMConnection(
   configuration: CRMConfiguration
@@ -217,7 +217,7 @@ export async function testCRMConnection(
     default:
       return {
         success: false,
-        message: 'Unsupported CRM provider',
+        message: 'Unsupported helpdesk provider',
         error: `Provider ${(configuration as any).provider} is not supported`,
       };
   }
@@ -233,6 +233,11 @@ export async function getUserChatwootConfig(
   try {
     const { prisma } = await import('./../../lib/prisma');
     
+    if (!prisma) {
+      console.warn('[getUserChatwootConfig] Prisma not available');
+      return null;
+    }
+    
     const integration = await prisma.integration.findFirst({
       where: {
         userId,
@@ -242,22 +247,38 @@ export async function getUserChatwootConfig(
     });
     
     if (!integration) {
+      console.log(`[getUserChatwootConfig] No active CRM integration found for user ${userId}`);
       return null;
     }
     
     const config = integration.configuration as any;
     
-    if (config.provider !== 'CHATWOOT') {
+    if (!config || config.provider !== 'CHATWOOT') {
+      console.log(`[getUserChatwootConfig] Integration found but provider is not CHATWOOT (found: ${config?.provider})`);
       return null;
     }
     
     // Decrypt sensitive fields
-    return {
-      ...config,
-      apiKey: decrypt(config.apiKey),
-    } as ChatwootConfiguration;
+    try {
+      let decryptedApiKey = config.apiKey;
+      if (config.apiKey && config.apiKey.includes(':')) {
+        decryptedApiKey = decrypt(config.apiKey);
+      }
+      
+      // Normalize baseUrl to remove trailing slash
+      const normalizedBaseUrl = config.baseUrl?.replace(/\/+$/, '') || config.baseUrl;
+      
+      return {
+        ...config,
+        baseUrl: normalizedBaseUrl,
+        apiKey: decryptedApiKey,
+      } as ChatwootConfiguration;
+    } catch (decryptError) {
+      console.error('[getUserChatwootConfig] Failed to decrypt API key:', decryptError);
+      return null;
+    }
   } catch (error) {
-    console.error('Error getting user Chatwoot config:', error);
+    console.error('[getUserChatwootConfig] Error getting user Chatwoot config:', error);
     return null;
   }
 }

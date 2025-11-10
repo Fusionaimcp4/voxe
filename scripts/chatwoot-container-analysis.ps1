@@ -17,7 +17,7 @@ Write-Host ""
 
 Write-Host "The Problem:" -ForegroundColor Red
 Write-Host "============" -ForegroundColor Red
-Write-Host "Your Voxe app is trying to access: https://chatwoot.mcp4.ai" -ForegroundColor White
+Write-Host "Your Voxe app is trying to access: https://chatvoxe.mcp4.ai" -ForegroundColor White
 Write-Host "But Chatwoot is only running on: http://127.0.0.1:8082" -ForegroundColor White
 Write-Host ""
 

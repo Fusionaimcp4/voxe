@@ -1,10 +1,10 @@
 /**
- * CRM Provider definitions and configurations
+ * Helpdesk Provider definitions and configurations
  */
 
 import { CRMProviderInfo, FormFieldDefinition, CRMProvider } from './types';
 
-// CRM Provider metadata
+// Helpdesk Provider metadata
 export const CRM_PROVIDERS: Record<CRMProvider, CRMProviderInfo> = {
   CHATWOOT: {
     id: 'CHATWOOT',
@@ -26,7 +26,7 @@ export const CRM_PROVIDERS: Record<CRMProvider, CRMProviderInfo> = {
   SALESFORCE: {
     id: 'SALESFORCE',
     name: 'Salesforce',
-    description: 'World\'s #1 CRM platform for sales, service, and marketing',
+    description: 'World\'s #1 helpdesk platform for sales, service, and marketing',
     icon: '☁️',
     documentationUrl: 'https://developer.salesforce.com/docs',
     features: {
@@ -43,7 +43,7 @@ export const CRM_PROVIDERS: Record<CRMProvider, CRMProviderInfo> = {
   HUBSPOT: {
     id: 'HUBSPOT',
     name: 'HubSpot',
-    description: 'All-in-one CRM platform for marketing, sales, and customer service',
+    description: 'All-in-one helpdesk platform for marketing, sales, and customer service',
     icon: '🧲',
     documentationUrl: 'https://developers.hubspot.com/docs/api/overview',
     features: {
@@ -60,7 +60,7 @@ export const CRM_PROVIDERS: Record<CRMProvider, CRMProviderInfo> = {
   ZOHO: {
     id: 'ZOHO',
     name: 'Zoho CRM',
-    description: 'Cloud-based CRM for sales, marketing, and customer support',
+    description: 'Cloud-based helpdesk for sales, marketing, and customer support',
     icon: '📊',
     documentationUrl: 'https://www.zoho.com/crm/developer/docs/',
     features: {
@@ -77,7 +77,7 @@ export const CRM_PROVIDERS: Record<CRMProvider, CRMProviderInfo> = {
   PIPEDRIVE: {
     id: 'PIPEDRIVE',
     name: 'Pipedrive',
-    description: 'Sales-focused CRM and pipeline management tool',
+    description: 'Sales-focused helpdesk and pipeline management tool',
     icon: '🔄',
     documentationUrl: 'https://developers.pipedrive.com/docs',
     features: {
@@ -93,8 +93,8 @@ export const CRM_PROVIDERS: Record<CRMProvider, CRMProviderInfo> = {
   },
   CUSTOM: {
     id: 'CUSTOM',
-    name: 'Custom CRM',
-    description: 'Connect any CRM system with custom API configuration',
+    name: 'Custom Helpdesk',
+    description: 'Connect any helpdesk system with custom API configuration',
     icon: '🔧',
     features: {
       supportsContacts: true,
@@ -109,7 +109,7 @@ export const CRM_PROVIDERS: Record<CRMProvider, CRMProviderInfo> = {
   },
 };
 
-// Form field definitions for each CRM provider
+// Form field definitions for each helpdesk provider
 export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
   CHATWOOT: [
     {
@@ -271,7 +271,7 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
       name: 'datacenter',
       label: 'Data Center',
       type: 'select',
-      helpText: 'Select your Zoho CRM data center',
+      helpText: 'Select your Zoho helpdesk data center',
       options: [
         { label: 'United States (.com)', value: 'com' },
         { label: 'Europe (.eu)', value: 'eu' },
@@ -347,10 +347,10 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
   CUSTOM: [
     {
       name: 'name',
-      label: 'CRM Name',
+      label: 'Helpdesk Name',
       type: 'text',
-      placeholder: 'My Custom CRM',
-      helpText: 'A friendly name for your custom CRM',
+      placeholder: 'My Custom Helpdesk',
+      helpText: 'A friendly name for your custom helpdesk',
       validation: {
         required: true,
         minLength: 2,
@@ -361,8 +361,8 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
       name: 'apiEndpoint',
       label: 'API Base URL',
       type: 'url',
-      placeholder: 'https://api.yourcrm.com',
-      helpText: 'The base URL for your CRM API',
+      placeholder: 'https://api.yourhelpdesk.com',
+      helpText: 'The base URL for your helpdesk API',
       validation: {
         required: true,
         pattern: /^https?:\/\/.+/,
@@ -373,7 +373,7 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
       name: 'authType',
       label: 'Authentication Type',
       type: 'select',
-      helpText: 'Select how your CRM API authenticates',
+      helpText: 'Select how your helpdesk API authenticates',
       options: [
         { label: 'API Key', value: 'API_KEY' },
         { label: 'Bearer Token', value: 'BEARER' },
@@ -417,7 +417,7 @@ export function getCRMFormFields(provider: CRMProvider): FormFieldDefinition[] {
   return CRM_FORM_FIELDS[provider];
 }
 
-// Get all available CRM providers
+// Get all available helpdesk providers
 export function getAllCRMProviders(): CRMProviderInfo[] {
   return Object.values(CRM_PROVIDERS);
 }

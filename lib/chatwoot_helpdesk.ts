@@ -31,8 +31,9 @@ export interface CreateUserResponse {
 
 /**
  * Get Chatwoot credentials for API calls
+ * Checks user-specific integration config first, then falls back to env vars
  */
-async function getChatwootCredentials(userId: string): Promise<{
+export async function getChatwootCredentials(userId: string): Promise<{
   baseUrl: string;
   accountId: string;
   apiKey: string;
@@ -60,14 +61,38 @@ async function getChatwootCredentials(userId: string): Promise<{
   return { baseUrl, accountId, apiKey };
 }
 
-async function getPlatformApiKey(): Promise<string> {
-  // Check for platform API key in environment
+async function getPlatformApiKey(userId: string): Promise<string> {
+  // First, try to get platform API key from user's integration config
+  try {
+    const userConfig = await getUserChatwootConfig(userId);
+    // Check if user config has a platform API key (for future support)
+    // For now, we'll use the regular API key if platform key is not available
+    if (userConfig && (userConfig as any).platformApiKey) {
+      console.log(`[getPlatformApiKey] Using platform API key from user integration for user ${userId}`);
+      return (userConfig as any).platformApiKey;
+    }
+  } catch (error) {
+    console.log(`[getPlatformApiKey] Could not get user config, will use env var:`, error);
+  }
+  
+  // Fall back to environment variable
   const platformApiKey = process.env.CHATWOOT_PLATFORM_API_KEY;
   
   if (!platformApiKey) {
-    throw new Error('CHATWOOT_PLATFORM_API_KEY is required for platform API operations. Please configure it in your .env file.');
+    // If no platform API key, try using the regular API key as fallback
+    // (This might work for some Chatwoot installations)
+    console.warn('[getPlatformApiKey] CHATWOOT_PLATFORM_API_KEY not found in env, will try using regular API key');
+    
+    try {
+      const credentials = await getChatwootCredentials(userId);
+      console.log(`[getPlatformApiKey] Using regular API key as fallback for platform API`);
+      return credentials.apiKey;
+    } catch (error) {
+      throw new Error('CHATWOOT_PLATFORM_API_KEY is required for platform API operations. Please configure it in your .env file or set up a Chatwoot integration with platform API key.');
+    }
   }
   
+  console.log(`[getPlatformApiKey] Using CHATWOOT_PLATFORM_API_KEY from environment variables`);
   return platformApiKey;
 }
 
@@ -84,7 +109,7 @@ export async function createChatwootUser(
 ): Promise<CreateUserResponse> {
   try {
     const credentials = await getChatwootCredentials(userId);
-    const platformApiKey = await getPlatformApiKey();
+    const platformApiKey = await getPlatformApiKey(userId);
     
     // First create the platform user, then add to account
     // Step 1: Create user in the platform
@@ -93,6 +118,7 @@ export async function createChatwootUser(
     console.log(`📧 Creating Chatwoot platform user with email: ${email}`);
     console.log(`🔗 Chatwoot Platform API URL: ${createPlatformUserUrl}`);
     console.log(`🔑 Credentials: baseUrl=${credentials.baseUrl}, accountId=${credentials.accountId}`);
+    console.log(`🔑 Platform API Key: ${platformApiKey ? `${platformApiKey.substring(0, 10)}...` : 'MISSING'}`);
     
     // Get current date in ISO format for confirmed_at
     const confirmedAt = new Date().toISOString();

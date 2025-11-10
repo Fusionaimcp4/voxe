@@ -177,7 +177,32 @@ export async function POST(request: NextRequest) {
     const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl);
 
     // Step 7: Render demo HTML
-    const chatwootBaseUrl = process.env.CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai';
+    // Get Chatwoot base URL from user config if available, otherwise use env var
+    let chatwootBaseUrl = process.env.CHATWOOT_BASE_URL;
+    
+    // Try to get user-specific Chatwoot configuration if userId is available
+    // Note: userId might not be available in onboard route, so this is optional
+    if (userId) {
+      try {
+        const { getUserChatwootConfig } = await import('@/lib/integrations/crm-service');
+        const userChatwootConfig = await getUserChatwootConfig(userId);
+        if (userChatwootConfig) {
+          chatwootBaseUrl = userChatwootConfig.baseUrl;
+        }
+      } catch (error) {
+        // User config not available or not Chatwoot - use env var fallback
+        logger.debug('User Chatwoot config not available, using env var:', error);
+      }
+    }
+    
+    if (!chatwootBaseUrl) {
+      // Fallback to default if env var also not set (shouldn't happen in production)
+      chatwootBaseUrl = 'https://chatvoxe.mcp4.ai';
+      logger.warn('No Chatwoot base URL found, using default fallback');
+    }
+    
+    // Normalize baseUrl to remove trailing slash
+    chatwootBaseUrl = chatwootBaseUrl.replace(/\/+$/, '');
     const demoHTML = renderDemoHTML({
       businessName,
       slug,
@@ -221,10 +246,12 @@ export async function POST(request: NextRequest) {
 
       // 3) Trigger n8n workflow duplication via webhook (fire-and-forget)
       if (botAccessToken) {
+        // chatwootBaseUrl is available from Step 7 above
         workflowDuplicationResult = await duplicateWorkflowViaWebhook(
           businessName,
           botAccessToken,
-          finalSystemMessage
+          finalSystemMessage,
+          chatwootBaseUrl // Pass the Chatwoot base URL (from user config or env)
         );
       } else {
         logger.warn('No bot access token available, skipping workflow duplication');

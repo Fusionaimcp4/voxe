@@ -74,10 +74,10 @@ export function CustomCRMConfigForm({ configuration, onChange, disabled }: Custo
       {/* Additional Information */}
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 mt-6">
         <p className="text-blue-400 text-sm mb-2 font-medium">
-          ℹ️ Custom CRM Integration Guide:
+          ℹ️ Custom Helpdesk Integration Guide:
         </p>
         <ul className="text-xs text-zinc-400 space-y-1 list-disc list-inside">
-          <li><strong>API Base URL:</strong> The root endpoint of your CRM's API</li>
+          <li><strong>API Base URL:</strong> The root endpoint of your helpdesk's API</li>
           <li><strong>Auth Type:</strong> Choose how your API authenticates requests</li>
           <li><strong>Credentials:</strong> Enter auth details as JSON (e.g., {`{"api_key": "xxx"}`})</li>
         </ul>

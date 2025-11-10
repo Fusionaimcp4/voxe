@@ -50,7 +50,7 @@ const ctx = {
   slug: '$Slug',
   primary: '#7ee787',
   secondary: '#f4a261',
-  chatwootBaseUrl: 'https://chatwoot.mcp4.ai',
+  chatwootBaseUrl: 'https://chatvoxe.mcp4.ai',
   websiteToken: '$websiteToken'
 };
 

@@ -2,7 +2,7 @@
 # This script helps diagnose issues with self-hosted Chatwoot Docker setup
 
 param(
-    [string]$ChatwootUrl = "https://chatwoot.mcp4.ai",
+    [string]$ChatwootUrl = "https://chatvoxe.mcp4.ai",
     [string]$DockerComposePath = "docker-compose.yml"
 )
 

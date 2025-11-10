@@ -28,14 +28,21 @@ interface N8nExecutionResponse {
  * Get n8n API configuration
  */
 function getN8nConfig() {
-  const baseUrl = process.env.N8N_BASE_URL || 'https://n8n.sost.work';
+  const baseUrl = process.env.N8N_BASE_URL;
   const apiKey = process.env.N8N_API_KEY;
   
-  if (!apiKey) {
-    throw new Error('N8N_API_KEY environment variable is required');
+  if (!baseUrl) {
+    throw new Error('N8N_BASE_URL environment variable is required. Please configure it in your .env file.');
   }
   
-  return { baseUrl, apiKey };
+  if (!apiKey) {
+    throw new Error('N8N_API_KEY environment variable is required. Please configure it in your .env file.');
+  }
+  
+  // Normalize baseUrl to remove trailing slash
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+  
+  return { baseUrl: normalizedBaseUrl, apiKey };
 }
 
 /**

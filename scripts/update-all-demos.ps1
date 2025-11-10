@@ -31,7 +31,7 @@ foreach ($demoDir in $demoDirs) {
                 $improvedScript = @"
   <script>
     (function(d,t) {
-      var BASE_URL="https://chatwoot.mcp4.ai";
+      var BASE_URL="https://chatvoxe.mcp4.ai";
       var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
       g.src=BASE_URL+"/packs/js/sdk.js"; 
       g.crossOrigin="anonymous"; // Add CORS support

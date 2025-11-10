@@ -20,12 +20,15 @@ async function getChatwootCredentials(userId?: string): Promise<ChatwootCredenti
     try {
       const userConfig = await getUserChatwootConfig(userId);
       if (userConfig) {
+        console.log(`[getChatwootCredentials] Using user-specific Chatwoot config for user ${userId}`);
         base = userConfig.baseUrl;
         accountId = userConfig.accountId;
         apiKey = userConfig.apiKey;
+      } else {
+        console.log(`[getChatwootCredentials] No user-specific Chatwoot config found for user ${userId}, will use env vars`);
       }
     } catch (error) {
-      console.warn('Failed to get user Chatwoot config, falling back to env vars:', error);
+      console.warn('[getChatwootCredentials] Failed to get user Chatwoot config, falling back to env vars:', error);
     }
   }
 
@@ -40,7 +43,10 @@ async function getChatwootCredentials(userId?: string): Promise<ChatwootCredenti
     throw new Error('Missing Chatwoot credentials. Either configure a CRM integration or set environment variables.');
   }
 
-  return { baseUrl: base, accountId, apiKey };
+  // Normalize baseUrl to remove trailing slash
+  const normalizedBaseUrl = base.replace(/\/+$/, '');
+
+  return { baseUrl: normalizedBaseUrl, accountId, apiKey };
 }
 
 async function cwPost(path: string, body: any, credentials: ChatwootCredentials) {
@@ -78,7 +84,11 @@ async function cwGet(path: string, credentials: ChatwootCredentials) {
 export async function createAgentBot(businessName: string, userId?: string) {
   const credentials = await getChatwootCredentials(userId);
   
-  const outgoing_url = `${process.env.N8N_BASE_URL || 'https://n8n.sost.work'}/webhook/${businessName}`;
+  const n8nBaseUrl = process.env.N8N_BASE_URL;
+  if (!n8nBaseUrl) {
+    throw new Error('N8N_BASE_URL environment variable is required. Please configure it in your .env file.');
+  }
+  const outgoing_url = `${n8nBaseUrl.replace(/\/+$/, '')}/webhook/${businessName}`;
   const payload = {
     name: `${businessName} Bot`,
     description: `Bot for ${businessName} demo`,

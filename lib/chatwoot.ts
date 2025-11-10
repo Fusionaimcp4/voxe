@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { getUserChatwootConfig } from './integrations/crm-service';
 
 export interface ChatwootInboxResponse {
   inbox_id: number;
@@ -31,9 +32,12 @@ export async function createWebsiteInbox(
     try {
       const userConfig = await getUserChatwootConfig(userId);
       if (userConfig) {
+        logger.debug(`[createWebsiteInbox] Using user-specific Chatwoot config for user ${userId}`);
         base = userConfig.baseUrl;
         accountId = userConfig.accountId;
         token = userConfig.apiKey;
+      } else {
+        logger.debug(`[createWebsiteInbox] No user-specific Chatwoot config found for user ${userId}, will use env vars`);
       }
     } catch (error) {
       logger.warn('Failed to get user Chatwoot config, falling back to env vars:', error);
@@ -50,6 +54,9 @@ export async function createWebsiteInbox(
   if (!base || !accountId || !token) {
     throw new Error('Missing Chatwoot credentials. Either configure a CRM integration or set environment variables: CHATWOOT_BASE_URL, CHATWOOT_ACCOUNT_ID, CHATWOOT_API_KEY');
   }
+
+  // Normalize baseUrl to remove trailing slash
+  base = base.replace(/\/+$/, '');
 
   const url = `${base}/api/v1/accounts/${accountId}/inboxes`;
   const payload = {

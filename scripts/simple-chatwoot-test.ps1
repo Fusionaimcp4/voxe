@@ -5,7 +5,7 @@ Write-Host "Testing Remote Chatwoot Server" -ForegroundColor Green
 Write-Host "===============================" -ForegroundColor Green
 Write-Host ""
 
-$chatwootUrl = "https://chatwoot.mcp4.ai"
+$chatwootUrl = "https://chatvoxe.mcp4.ai"
 $websiteToken = "4zDnxdxE8h69RfvVXtZ4zF2E"
 
 # Test 1: Basic server connectivity
@@ -62,7 +62,7 @@ Write-Host "6. Restart services:" -ForegroundColor White
 Write-Host "   docker-compose restart" -ForegroundColor Gray
 Write-Host ""
 Write-Host "7. Check Chatwoot admin panel:" -ForegroundColor White
-Write-Host "   https://chatwoot.mcp4.ai/app" -ForegroundColor Gray
+Write-Host "   https://chatvoxe.mcp4.ai/app" -ForegroundColor Gray
 Write-Host "   - Verify website token is active" -ForegroundColor White
 Write-Host "   - Check if inbox is enabled" -ForegroundColor White
 Write-Host "   - Verify CORS settings allow localhost:3000" -ForegroundColor White

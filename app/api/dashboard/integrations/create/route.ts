@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
     let processedConfiguration = { ...body.configuration };
     
     if (body.type === 'CRM') {
-      const crmConfig = body.configuration as CRMConfiguration;
+      const helpdeskConfig = body.configuration as CRMConfiguration;
       
       // Get form fields to determine which fields are sensitive
-      const formFields = getCRMFormFields(crmConfig.provider);
+      const formFields = getCRMFormFields(helpdeskConfig.provider);
       const sensitiveFields = formFields
         .filter(field => field.sensitive)
         .map(field => field.name);

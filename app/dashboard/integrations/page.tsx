@@ -91,7 +91,7 @@ export default function IntegrationsPage() {
           id: demo.id,
           name: demo.businessName,
           websiteToken: demo.chatwootWebsiteToken,
-          baseUrl: 'https://chatvoxe.mcp4.ai' // Default Chatwoot base URL
+          baseUrl: process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || '' // Will be set from user's integration or env
         })).filter((chat: any) => chat.websiteToken); // Only include demos with website tokens
         
         setAvailableChats(chats);
@@ -238,7 +238,7 @@ export default function IntegrationsPage() {
         throw new Error(error.error || 'Failed to save integration');
       }
     } catch (error) {
-      console.error('Failed to save CRM integration:', error);
+      console.error('Failed to save helpdesk integration:', error);
       throw error;
     }
   };
@@ -438,9 +438,9 @@ export default function IntegrationsPage() {
         <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Available Integrations</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {[
-            { type: 'CRM', name: 'CRM Integration', description: 'Connect Chatwoot, Salesforce, HubSpot, or custom CRM systems', available: true, tier: 'FREE' },
+            { type: 'CRM', name: 'Helpdesk Setup', description: 'Connect Chatwoot, Salesforce, HubSpot, or custom helpdesk systems', available: true, tier: 'FREE' },
             { type: 'CHAT_WIDGET', name: 'Chat Widget Script', description: 'Get the embeddable chat script for your website', available: isPaidUser, tier: 'PRO', requiresUpgrade: !isPaidUser },
-            { type: 'HELPDESK', name: 'Helpdesk Setup', description: 'Create and manage Chatwoot helpdesk agents and assignments', available: true, tier: 'FREE' },
+            { type: 'HELPDESK', name: 'Helpdesk Agent Setup', description: 'Create and manage Chatwoot helpdesk agents and assignments', available: true, tier: 'FREE' },
             { type: 'DATABASE', name: 'Database Integration', description: 'Connect to PostgreSQL, MySQL, MongoDB, or other databases', available: false, tier: 'PRO_PLUS' },
             { type: 'API', name: 'API Integration', description: 'Connect to REST APIs, GraphQL endpoints, or custom services', available: false, tier: 'PRO_PLUS' },
             { type: 'WEBHOOK', name: 'Webhook Integration', description: 'Set up custom webhooks for real-time notifications', available: false, tier: 'PRO_PLUS' },
@@ -520,7 +520,7 @@ export default function IntegrationsPage() {
                     <div>
                       <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{integration.name}</h4>
                       <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {integration.type}
+                        {integration.type === 'CRM' ? 'Helpdesk Setup' : integration.type}
                         {crmProvider && ` - ${crmProvider}`}
                       </p>
                     </div>
@@ -730,7 +730,7 @@ export default function IntegrationsPage() {
 {`<script>
   window.chatwootSettings = {"position":"${widgetPosition}","type":"${widgetType}","launcherTitle":"Chat with us"};
   (function(d,t) {
-    var BASE_URL = "${availableChats.find(chat => chat.id === selectedChat)?.baseUrl || 'https://chatvoxe.mcp4.ai'}";
+    var BASE_URL = "${availableChats.find(chat => chat.id === selectedChat)?.baseUrl || ''}";
     var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
     g.src = BASE_URL + "/packs/js/sdk.js";
     g.async = true;
@@ -774,7 +774,7 @@ export default function IntegrationsPage() {
         </div>
       )}
 
-      {/* CRM Integration Modal */}
+      {/* Helpdesk Setup Modal */}
       <CRMConfigModal
         isOpen={showCRMModal}
         onClose={handleCloseCRMModal}

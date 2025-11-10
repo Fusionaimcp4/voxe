@@ -2,7 +2,7 @@
 # This script helps diagnose issues with your remote Chatwoot server
 
 param(
-    [string]$ChatwootUrl = "https://chatwoot.mcp4.ai",
+    [string]$ChatwootUrl = "https://chatvoxe.mcp4.ai",
     [string]$WebsiteToken = "4zDnxdxE8h69RfvVXtZ4zF2E"
 )
 

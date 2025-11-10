@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { updateN8nWorkflowStatus } from '@/lib/n8n-api';
+import { getChatwootCredentials } from '@/lib/chatwoot_helpdesk';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -93,16 +94,14 @@ export async function DELETE(
         console.log(`✅ ${demo.workflows.length} workflow record(s) deleted`);
       }
 
-      // 3. Delete system message records
-      if (demo.systemMessages.length > 0) {
-        await tx.systemMessage.deleteMany({
+      // 3. Delete system message record
+      if (demo.systemMessages) {
+        await tx.systemMessage.delete({
           where: { 
-            id: { 
-              in: demo.systemMessages.map(sm => sm.id) 
-            } 
+            id: demo.systemMessages.id
           }
         });
-        console.log(`✅ ${demo.systemMessages.length} system message record(s) deleted`);
+        console.log(`✅ System message record deleted`);
       }
 
       // 4. Delete demo record
@@ -144,11 +143,20 @@ export async function DELETE(
       try {
         console.log(`🗑️ Cleaning up Chatwoot resources for inbox: ${demo.chatwootInboxId}`);
         
+        // Get user-specific Chatwoot credentials (checks integration first, then env vars)
+        const credentials = await getChatwootCredentials(session.user.id);
+        
+        // Normalize baseUrl to remove trailing slash
+        const normalizedBaseUrl = credentials.baseUrl.replace(/\/+$/, '');
+        
         // Delete the inbox (this will also delete associated bots)
-        const chatwootResponse = await fetch(`https://chatwoot.mcp4.ai/api/v1/accounts/2/inboxes/${demo.chatwootInboxId}`, {
+        const deleteInboxUrl = `${normalizedBaseUrl}/api/v1/accounts/${credentials.accountId}/inboxes/${demo.chatwootInboxId}`;
+        console.log(`🔗 Deleting Chatwoot inbox: ${deleteInboxUrl}`);
+        
+        const chatwootResponse = await fetch(deleteInboxUrl, {
           method: 'DELETE',
           headers: {
-            'api_access_token': process.env.CHATWOOT_API_KEY || '',
+            'api_access_token': credentials.apiKey,
             'Content-Type': 'application/json'
           }
         });

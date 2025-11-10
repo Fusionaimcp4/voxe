@@ -1,5 +1,5 @@
 /**
- * TypeScript types and interfaces for CRM integrations
+ * TypeScript types and interfaces for helpdesk integrations
  */
 
 // Base integration status
@@ -7,10 +7,10 @@ export type IntegrationStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR' | 'TESTING' | 'P
 
 export type IntegrationType = 'CALENDAR' | 'DATABASE' | 'API' | 'WEBHOOK' | 'CRM';
 
-// CRM Provider types
+// Helpdesk Provider types
 export type CRMProvider = 'CHATWOOT' | 'SALESFORCE' | 'HUBSPOT' | 'ZOHO' | 'PIPEDRIVE' | 'CUSTOM';
 
-// Base CRM configuration interface
+// Base helpdesk configuration interface
 export interface BaseCRMConfiguration {
   provider: CRMProvider;
   connectionStatus?: {
@@ -67,7 +67,7 @@ export interface HubSpotConfiguration extends BaseCRMConfiguration {
   };
 }
 
-// Custom CRM configuration
+// Custom helpdesk configuration
 export interface CustomCRMConfiguration extends BaseCRMConfiguration {
   provider: 'CUSTOM';
   name: string;
@@ -82,7 +82,7 @@ export interface CustomCRMConfiguration extends BaseCRMConfiguration {
   };
 }
 
-// Union type for all CRM configurations
+// Union type for all helpdesk configurations
 export type CRMConfiguration = 
   | ChatwootConfiguration 
   | SalesforceConfiguration 
@@ -130,7 +130,7 @@ export interface TestConnectionResponse {
   error?: string;
 }
 
-// CRM capabilities/features
+// Helpdesk capabilities/features
 export interface CRMFeatures {
   supportsContacts: boolean;
   supportsDeals: boolean;
@@ -141,7 +141,7 @@ export interface CRMFeatures {
   supportsCustomFields: boolean;
 }
 
-// CRM provider metadata
+// Helpdesk provider metadata
 export interface CRMProviderInfo {
   id: CRMProvider;
   name: string;

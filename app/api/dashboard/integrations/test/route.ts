@@ -26,10 +26,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only support CRM testing for now
+    // Only support helpdesk testing for now
     if (body.type !== 'CRM') {
       return NextResponse.json(
-        { error: 'Only CRM integration testing is supported' },
+        { error: 'Only helpdesk integration testing is supported' },
         { status: 400 }
       );
     }

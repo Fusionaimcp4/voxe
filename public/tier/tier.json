@@ -1,0 +1,105 @@
+{
+    "STARTER": {
+      "limits": {
+        "agents": 2,
+        "inboxes": 2,
+        "captain_responses": 5,
+        "captain_documents": 10
+      },
+      "features": [
+        "Agent Bots",
+        "Inbox Management",
+        "Email Channel",
+        "Website Channel",
+        "Help Center",
+        "Canned Responses",
+        "Custom Attributes",
+        "IP Lookup",
+        "Labels",
+        "Reports",
+        "Quoted Email Reply"
+      ]
+    },
+    "TEAM": {
+      "limits": {
+        "agents": 5,
+        "inboxes": 5,
+        "captain_responses": 25,
+        "captain_documents": 50
+      },
+      "features": [
+        "Agent Bots",
+        "Agent Management",
+        "Auto Resolve Conversations",
+        "Automations",
+        "CRM",
+        "CRM Integration",
+        "Campaigns",
+        "Canned Responses",
+        "Chatwoot V4",
+        "Custom Attributes",
+        "Custom Reply Domain",
+        "Custom Reply Email",
+        "Email Channel",
+        "Email Continuity on API Channel",
+        "Facebook Channel",
+        "Help Center",
+        "IP Lookup",
+        "Inbound Emails",
+        "Inbox Management",
+        "Instagram Channel",
+        "Integrations",
+        "Labels",
+        "Linear Integration",
+        "Macros",
+        "Notion Integration",
+        "Quoted Email Reply",
+        "Reports",
+        "Team Management",
+        "Voice Recorder",
+        "Website Channel"
+      ]
+    },
+    "BUSINESS": {
+      "limits": {
+        "agents": 10,
+        "inboxes": 20,
+        "captain_responses": 100,
+        "captain_documents": 1000
+      },
+      "features": [
+        "Agent Bots",
+        "Agent Management",
+        "Auto Resolve Conversations",
+        "Automations",
+        "CRM",
+        "CRM Integration",
+        "Campaigns",
+        "Canned Responses",
+        "Chatwoot V4",
+        "Custom Attributes",
+        "Custom Reply Domain",
+        "Custom Reply Email",
+        "Email Channel",
+        "Email Continuity on API Channel",
+        "Facebook Channel",
+        "Help Center",
+        "IP Lookup",
+        "Inbound Emails",
+        "Inbox Management",
+        "Instagram Channel",
+        "Integrations",
+        "Labels",
+        "Linear Integration",
+        "Macros",
+        "Notion Integration",
+        "Quoted Email Reply",
+        "Reports",
+        "Team Management",
+        "Voice Recorder",
+        "Website Channel",
+        "WhatsApp Campaign"
+      ]
+    }
+  }
+  

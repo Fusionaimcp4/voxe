@@ -3,7 +3,7 @@
 
 param(
     [string]$DemoUrl = "http://localhost:3000/demo/formspree-io-517867f7",
-    [string]$ChatwootBaseUrl = "https://chatwoot.mcp4.ai"
+    [string]$ChatwootBaseUrl = "https://chatvoxe.mcp4.ai"
 )
 
 Write-Host "Chatwoot Widget Diagnostic" -ForegroundColor Green
