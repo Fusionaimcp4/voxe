@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { getCRMFormFields } from "@/lib/integrations/crm-providers";
 
 interface ChatwootConfigFormProps {
@@ -11,6 +11,7 @@ interface ChatwootConfigFormProps {
 
 export function ChatwootConfigForm({ configuration, onChange, disabled }: ChatwootConfigFormProps) {
   const formFields = getCRMFormFields('CHATWOOT');
+  const [showApiToken, setShowApiToken] = useState(!!configuration?.apiKey);
 
   const handleFieldChange = (fieldName: string, value: any) => {
     const keys = fieldName.split('.');
@@ -45,10 +46,52 @@ export function ChatwootConfigForm({ configuration, onChange, disabled }: Chatwo
     return value;
   };
 
+  // Check if API key exists but should be masked
+  const shouldMaskApiKey = (fieldName: string) => {
+    if (fieldName !== 'apiKey') return false;
+    const value = getFieldValue(fieldName);
+    // If value exists and is a string, mask it for display
+    // But allow editing if user wants to change it
+    return value && typeof value === 'string' && value.length > 0;
+  };
+
+  // Update showApiToken state when apiKey changes
+  React.useEffect(() => {
+    if (configuration?.apiKey) {
+      setShowApiToken(true);
+    }
+  }, [configuration?.apiKey]);
+
   return (
     <div className="space-y-5">
       {formFields.map((field) => {
         const value = getFieldValue(field.name) ?? field.defaultValue ?? '';
+        
+        // Hide API token field initially if token is not available
+        if (field.name === 'apiKey' && !showApiToken) {
+          return (
+            <div key={field.name} className="border border-slate-200 dark:border-slate-600 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/50">
+              <button
+                type="button"
+                onClick={() => setShowApiToken(true)}
+                className="w-full flex items-center justify-between text-left"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {field.label}
+                    {field.validation.required && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Click to enter your API token (found in Profile Settings → Access Token)
+                  </p>
+                </div>
+                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          );
+        }
 
         return (
           <div key={field.name}>
@@ -92,9 +135,23 @@ export function ChatwootConfigForm({ configuration, onChange, disabled }: Chatwo
               />
             ) : (
               <input
-                type={field.type}
-                value={value}
-                onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                type={field.type === 'password' || (field.name === 'apiKey' && shouldMaskApiKey(field.name)) ? 'password' : field.type}
+                value={field.name === 'apiKey' && shouldMaskApiKey(field.name) ? '••••••••••••••••' : value}
+                onChange={(e) => {
+                  // If masked, clear the value when user starts typing
+                  if (field.name === 'apiKey' && shouldMaskApiKey(field.name) && e.target.value !== '••••••••••••••••') {
+                    handleFieldChange(field.name, e.target.value);
+                  } else if (field.name !== 'apiKey' || !shouldMaskApiKey(field.name)) {
+                    handleFieldChange(field.name, e.target.value);
+                  }
+                }}
+                onFocus={(e) => {
+                  // Clear masked value when user focuses to edit
+                  if (field.name === 'apiKey' && shouldMaskApiKey(field.name)) {
+                    e.target.value = '';
+                    handleFieldChange(field.name, '');
+                  }
+                }}
                 placeholder={field.placeholder}
                 disabled={disabled}
                 className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:border-emerald-500 transition-colors text-slate-900 dark:text-slate-100"

@@ -114,6 +114,18 @@ export default function IntegrationsPage() {
       if (response.ok) {
         setIntegrations(data.integrations);
         setStats(data.stats);
+        
+        // If modal is open and we don't have an editing integration, check if there's a CHATVOXE integration
+        // This handles the case where Voxe helpdesk was just created
+        if (showCRMModal && !editingIntegration) {
+          const chatvoxeIntegration = data.integrations.find((i: Integration) => 
+            i.type === 'CRM' && 
+            (i.name === 'CHATVOXE' || (i.configuration as any)?.voxeCreated === true)
+          );
+          if (chatvoxeIntegration) {
+            setEditingIntegration(chatvoxeIntegration);
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch integrations:', error);
@@ -779,6 +791,12 @@ export default function IntegrationsPage() {
         isOpen={showCRMModal}
         onClose={handleCloseCRMModal}
         onSave={handleSaveCRM}
+        onRefresh={fetchIntegrations}
+        hasChatvoxeIntegration={integrations.some((i: Integration) => 
+          i.type === 'CRM' && 
+          i.isActive && 
+          (i.name === 'CHATVOXE' || (i.configuration as any)?.voxeCreated === true)
+        )}
         existingIntegration={editingIntegration ? {
           id: editingIntegration.id,
           name: editingIntegration.name,

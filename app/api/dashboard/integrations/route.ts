@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { canPerformAction, trackUsage } from '@/lib/usage-tracking';
 import { SubscriptionTier } from '@/lib/generated/prisma';
+import { decryptConfiguration } from '@/lib/integrations/crm-service';
+import { CRMConfiguration } from '@/lib/integrations/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,6 +31,28 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Decrypt sensitive fields in configurations before sending to frontend
+    const decryptedIntegrations = integrations.map(integration => {
+      const config = integration.configuration as any;
+      
+      // Only decrypt if it's a CRM integration with a provider
+      if (integration.type === 'CRM' && config?.provider) {
+        try {
+          const decryptedConfig = decryptConfiguration(config as CRMConfiguration);
+          return {
+            ...integration,
+            configuration: decryptedConfig,
+          };
+        } catch (decryptError) {
+          console.error(`[GET /api/dashboard/integrations] Failed to decrypt config for integration ${integration.id}:`, decryptError);
+          // Return original if decryption fails
+          return integration;
+        }
+      }
+      
+      return integration;
+    });
+
     // Calculate stats
     const stats = {
       totalIntegrations: integrations.length,
@@ -38,7 +62,7 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json({
-      integrations,
+      integrations: decryptedIntegrations,
       stats
     });
 

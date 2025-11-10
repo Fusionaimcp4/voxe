@@ -6,6 +6,9 @@
 import { 
   CRMConfiguration, 
   ChatwootConfiguration,
+  SalesforceConfiguration,
+  HubSpotConfiguration,
+  CustomCRMConfiguration,
   TestConnectionResponse 
 } from './types';
 import { decrypt } from './encryption';
@@ -290,31 +293,41 @@ export function decryptConfiguration(config: CRMConfiguration): CRMConfiguration
   const decryptedConfig = { ...config };
   
   switch (config.provider) {
-    case 'CHATWOOT':
-      if (config.apiKey && config.apiKey.includes(':')) {
-        decryptedConfig.apiKey = decrypt(config.apiKey);
+    case 'CHATWOOT': {
+      const chatwootConfig = config as ChatwootConfiguration;
+      if (chatwootConfig.apiKey && chatwootConfig.apiKey.includes(':')) {
+        (decryptedConfig as ChatwootConfiguration).apiKey = decrypt(chatwootConfig.apiKey);
       }
       break;
-    case 'SALESFORCE':
-      if (config.clientSecret && config.clientSecret.includes(':')) {
-        decryptedConfig.clientSecret = decrypt(config.clientSecret);
+    }
+    case 'SALESFORCE': {
+      const salesforceConfig = config as SalesforceConfiguration;
+      if (salesforceConfig.clientSecret && salesforceConfig.clientSecret.includes(':')) {
+        (decryptedConfig as SalesforceConfiguration).clientSecret = decrypt(salesforceConfig.clientSecret);
       }
-      if (config.securityToken && config.securityToken.includes(':')) {
-        decryptedConfig.securityToken = decrypt(config.securityToken);
-      }
-      break;
-    case 'HUBSPOT':
-      if (config.apiKey && config.apiKey.includes(':')) {
-        decryptedConfig.apiKey = decrypt(config.apiKey);
+      if (salesforceConfig.securityToken && salesforceConfig.securityToken.includes(':')) {
+        (decryptedConfig as SalesforceConfiguration).securityToken = decrypt(salesforceConfig.securityToken);
       }
       break;
-    case 'CUSTOM':
-      if (config.credentials) {
-        if (typeof config.credentials === 'string' && config.credentials.includes(':')) {
-          decryptedConfig.credentials = JSON.parse(decrypt(config.credentials));
+    }
+    case 'HUBSPOT': {
+      const hubspotConfig = config as HubSpotConfiguration;
+      if (hubspotConfig.apiKey && hubspotConfig.apiKey.includes(':')) {
+        (decryptedConfig as HubSpotConfiguration).apiKey = decrypt(hubspotConfig.apiKey);
+      }
+      break;
+    }
+    case 'CUSTOM': {
+      const customConfig = config as CustomCRMConfiguration;
+      if (customConfig.credentials) {
+        // credentials can be stored as encrypted string in database
+        const credentialsValue = customConfig.credentials as any;
+        if (typeof credentialsValue === 'string' && credentialsValue.includes(':')) {
+          (decryptedConfig as CustomCRMConfiguration).credentials = JSON.parse(decrypt(credentialsValue));
         }
       }
       break;
+    }
   }
   
   return decryptedConfig;
