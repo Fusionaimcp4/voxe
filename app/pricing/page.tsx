@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Crown, Zap, Star, ArrowRight, Loader2, Info, ArrowLeft, LayoutDashboard } from 'lucide-react';
+import { Check, Star, ArrowRight, Loader2, Info, ArrowLeft, LayoutDashboard, Users, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import type { Session } from 'next-auth'; // Explicitly import Session type
@@ -27,8 +27,19 @@ interface PricingPlan {
   annualDiscountPercentage?: number; // Add annualDiscountPercentage
 }
 
+interface TierData {
+  limits: {
+    agents: number;
+    inboxes: number;
+    captain_responses: number;
+    captain_documents: number;
+  };
+  features: string[];
+}
+
 export default function PricingPage() {
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
+  const [tierData, setTierData] = useState<Record<string, TierData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
@@ -39,24 +50,61 @@ export default function PricingPage() {
   const typedSession = session as Session | null;
 
   useEffect(() => {
-    const fetchPricingPlans = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/pricing');
-        if (!response.ok) {
+        // Fetch pricing plans
+        const plansResponse = await fetch('/api/pricing');
+        if (!plansResponse.ok) {
           throw new Error('Failed to fetch pricing plans');
         }
-        const data = await response.json();
-        setPricingPlans(data); // Corrected: Directly use data as it's the array of plans
+        const plansData = await plansResponse.json();
+        setPricingPlans(plansData);
+
+        // Fetch tier data
+        const tierResponse = await fetch('/tier/tier.json');
+        if (!tierResponse.ok) {
+          throw new Error('Failed to fetch tier data');
+        }
+        const tierJson = await tierResponse.json();
+        setTierData(tierJson);
       } catch (err) {
-        console.error('Error fetching pricing plans:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load pricing plans');
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPricingPlans();
+    fetchData();
   }, []);
+
+  // Helper function to get tier features in a grouped format
+  const getTierFeatures = (tier: SubscriptionTier) => {
+    const tierKey = tier === 'STARTER' ? 'STARTER' : tier === 'TEAM' ? 'TEAM' : tier === 'BUSINESS' ? 'BUSINESS' : null;
+    if (!tierKey || !tierData[tierKey]) {
+      return { limits: null, keyFeatures: [] };
+    }
+
+    const data = tierData[tierKey];
+    
+    // Create a clean, industry-standard feature list
+    // Show limits first, then top key features
+    const keyFeatures = [
+      { icon: Users, label: `${data.limits.agents} Agent Bots` },
+      { icon: MessageSquare, label: `${data.limits.inboxes} Inbox Management` },
+    ];
+
+    // Add top 4 most important features from the features array
+    const importantFeatures = data.features.slice(0, 4);
+    importantFeatures.forEach(feature => {
+      keyFeatures.push({ icon: Check, label: feature });
+    });
+
+    return {
+      limits: data.limits,
+      keyFeatures: keyFeatures.slice(0, 6), // Limit to 6 features for cleaner display
+    };
+  };
 
   const handleCheckout = async (plan: PricingPlan, selectedBillingCycle: 'monthly' | 'yearly', e?: React.MouseEvent) => {
     if (e) {
@@ -217,26 +265,30 @@ export default function PricingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex justify-center mt-8 sm:mt-10 mb-8 sm:mb-12"
           >
-            <div className="inline-flex items-center p-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="inline-flex items-center p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-lg">
               <button
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${billingCycle === 'monthly' 
-                  ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-md' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  billingCycle === 'monthly' 
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-md scale-105' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
-                className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 relative ${billingCycle === 'yearly' 
-                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 relative ${
+                  billingCycle === 'yearly' 
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30 scale-105' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
               >
                 Yearly
                 {billingCycle === 'yearly' ? (
-                  <span className="ml-2 text-xs px-2 py-0.5 bg-emerald-600 rounded-md font-bold">Save 15%</span>
+                  <span className="ml-2 text-xs px-2.5 py-1 bg-emerald-700 rounded-lg font-bold shadow-sm">Save 15%</span>
                 ) : (
-                  <span className="ml-2 text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-md font-medium">Save 15%</span>
+                  <span className="ml-2 text-xs px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg font-semibold">Save 15%</span>
                 )}
               </button>
             </div>
@@ -256,110 +308,129 @@ export default function PricingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`relative bg-white dark:bg-slate-800 rounded-2xl border transition-all duration-300 hover:shadow-xl ${plan.isPopular 
-                    ? 'border-emerald-500 shadow-lg shadow-emerald-500/10 md:scale-105 md:-mt-2' 
-                    : 'border-slate-200 dark:border-slate-700 shadow-md hover:border-slate-300 dark:hover:border-slate-600'
+                className={`relative bg-white dark:bg-slate-800 rounded-3xl border-2 transition-all duration-300 overflow-hidden ${
+                  plan.isPopular 
+                    ? 'border-emerald-500 shadow-2xl shadow-emerald-500/20 md:scale-105 md:-mt-4 ring-4 ring-emerald-500/10' 
+                    : 'border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:border-slate-300 dark:hover:border-slate-600 hover:-translate-y-1'
                 }`}
               >
                 {/* Popular Badge */}
                 {plan.isPopular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-emerald-500/50">
-                      <Star className="w-3.5 h-3.5 fill-current" />
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-500 text-white px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 shadow-xl shadow-emerald-500/50 backdrop-blur-sm">
+                      <Star className="w-4 h-4 fill-current" />
                       Most Popular
                     </div>
                   </div>
                 )}
 
-                {/* Tier Icon */}
-                <div className="flex justify-center mb-6 pt-6">
-                  <div className={`p-4 rounded-xl transition-transform duration-300 hover:scale-110 ${
-                    plan.tier === 'FREE' ? 'bg-slate-100 dark:bg-slate-700' :
-                    plan.tier === 'STARTER' ? 'bg-blue-50 dark:bg-blue-900/30' :
-                    plan.tier === 'TEAM' ? 'bg-blue-100 dark:bg-blue-900/40' :
-                    plan.tier === 'BUSINESS' ? 'bg-purple-100 dark:bg-purple-900/40' :
-                    'bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40'
-                  }`}>
-                    {plan.tier === 'FREE' || plan.tier === 'STARTER' ? (
-                      <Zap className="w-8 h-8 text-slate-700 dark:text-slate-300" />
-                    ) : (
-                      <Crown className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-                    )}
-                  </div>
-                </div>
+                {/* Gradient Background for Popular Plan */}
+                {plan.isPopular && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-transparent to-blue-50/30 dark:from-emerald-900/10 dark:via-transparent dark:to-blue-900/10 pointer-events-none" />
+                )}
 
-                {/* Tier Name & Price */}
-                <div className="text-center mb-6 px-6">
-                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3">
-                    {plan.name}
-                  </h3>
-                  <div className="mb-3">
-                    {formatPrice(plan.price, plan.currency, plan.period, plan.tier, plan.annualDiscountPercentage) !== null ? (
-                      <div className="flex items-baseline justify-center gap-2">
-                        <span className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-slate-100">
-                          {formatPrice(plan.price, plan.currency, plan.period, plan.tier, plan.annualDiscountPercentage)}
-                        </span>
-                        <span className="text-base sm:text-lg text-slate-500 dark:text-slate-400 font-medium">
-                          {billingCycle === 'yearly' ? '/year' : '/month'}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-2xl sm:text-3xl font-semibold text-slate-600 dark:text-slate-400">
-                        Contact us
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {plan.description}
-                  </p>
-                </div>
-
-                {/* Features */}
-                <div className="space-y-3.5 mb-8 px-6">
-                  {plan.features.map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CTA Button */}
-                <div className="px-6 pb-6">
-                  {plan.tier === 'ENTERPRISE' ? (
-                    <Link
-                      href="/contact"
-                      className={`w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-semibold text-center transition-all duration-200 ${plan.isPopular 
-                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30' 
-                        : 'bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 shadow-md hover:shadow-lg'}`}
-                    >
-                      {plan.ctaText || 'Contact Us'}
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleCheckout(plan, billingCycle, e);
-                      }}
-                      disabled={isCheckoutLoading === plan.id || !(billingCycle === 'monthly' ? plan.stripeMonthlyPriceId : plan.stripeYearlyPriceId)}
-                      className={`w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-semibold text-center transition-all duration-200 ${plan.isPopular 
-                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 disabled:hover:shadow-lg disabled:hover:shadow-emerald-500/25' 
-                        : 'bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 shadow-md hover:shadow-lg'} ${isCheckoutLoading === plan.id || !(billingCycle === 'monthly' ? plan.stripeMonthlyPriceId : plan.stripeYearlyPriceId) ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      title={!(billingCycle === 'monthly' ? plan.stripeMonthlyPriceId : plan.stripeYearlyPriceId) ? 'Payment configuration pending' : ''}
-                    >
-                      {isCheckoutLoading === plan.id ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="relative">
+                  {/* Tier Name & Price */}
+                  <div className="text-center pt-8 pb-6 px-6 border-b border-slate-100 dark:border-slate-700/50">
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
+                      {plan.name}
+                    </h3>
+                    <div className="mb-4">
+                      {formatPrice(plan.price, plan.currency, plan.period, plan.tier, plan.annualDiscountPercentage) !== null ? (
+                        <div className="flex items-baseline justify-center gap-2">
+                          <span className="text-5xl sm:text-6xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+                            {formatPrice(plan.price, plan.currency, plan.period, plan.tier, plan.annualDiscountPercentage)}
+                          </span>
+                          <span className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 font-medium">
+                            {billingCycle === 'yearly' ? '/year' : '/month'}
+                          </span>
+                        </div>
                       ) : (
-                        <>
-                          {plan.ctaText}
-                          <ArrowRight className="w-4 h-4" />
-                        </>
+                        <span className="text-3xl sm:text-4xl font-bold text-slate-600 dark:text-slate-400">
+                          Contact us
+                        </span>
                       )}
-                    </button>
-                  )}
+                    </div>
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                      {plan.description}
+                    </p>
+                  </div>
+
+                  {/* Features - Using tier.json data */}
+                  <div className="py-6 px-6 space-y-4 min-h-[280px] flex flex-col">
+                    <div className="flex-1 space-y-3.5">
+                      {(() => {
+                        const tierFeatures = getTierFeatures(plan.tier);
+                        if (!tierFeatures.limits && tierFeatures.keyFeatures.length === 0) {
+                          // Fallback to database features if tier.json not loaded
+                          return plan.features.slice(0, 6).map((feature, featureIndex) => (
+                            <div key={featureIndex} className="flex items-start gap-3 group">
+                              <div className="mt-0.5 flex-shrink-0">
+                                <Check className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
+                              </div>
+                              <span className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed font-medium">
+                                {feature}
+                              </span>
+                            </div>
+                          ));
+                        }
+
+                        return tierFeatures.keyFeatures.map((feature, featureIndex) => {
+                          const IconComponent = feature.icon;
+                          return (
+                            <div key={featureIndex} className="flex items-start gap-3 group">
+                              <div className="mt-0.5 flex-shrink-0">
+                                <IconComponent className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
+                              </div>
+                              <span className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed font-medium">
+                                {feature.label}
+                              </span>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    {/* CTA Button */}
+                    <div className="pt-4 mt-auto">
+                      {plan.tier === 'ENTERPRISE' ? (
+                        <Link
+                          href="/contact"
+                          className={`w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold text-base text-center transition-all duration-300 ${
+                            plan.isPopular 
+                              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105' 
+                              : 'bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 shadow-md hover:shadow-xl hover:scale-105'
+                          }`}
+                        >
+                          {plan.ctaText || 'Contact Us'}
+                          <ArrowRight className="w-5 h-5" />
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleCheckout(plan, billingCycle, e);
+                          }}
+                          disabled={isCheckoutLoading === plan.id || !(billingCycle === 'monthly' ? plan.stripeMonthlyPriceId : plan.stripeYearlyPriceId)}
+                          className={`w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold text-base text-center transition-all duration-300 ${
+                            plan.isPopular 
+                              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 disabled:hover:scale-100 disabled:hover:shadow-lg' 
+                              : 'bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 shadow-md hover:shadow-xl hover:scale-105 disabled:hover:scale-100'
+                          } ${isCheckoutLoading === plan.id || !(billingCycle === 'monthly' ? plan.stripeMonthlyPriceId : plan.stripeYearlyPriceId) ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          title={!(billingCycle === 'monthly' ? plan.stripeMonthlyPriceId : plan.stripeYearlyPriceId) ? 'Payment configuration pending' : ''}
+                        >
+                          {isCheckoutLoading === plan.id ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <>
+                              {plan.ctaText}
+                              <ArrowRight className="w-5 h-5" />
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Free trial status message */}
@@ -425,7 +496,7 @@ export default function PricingPage() {
                   What happens if I exceed my limits?
                 </h3>
                 <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
-                  We'll notify you when you're approaching your limits. You can upgrade to continue using the service.
+                If you exceed your limits, you can use our top-up system to add credits and cover the LLM costs, allowing you to continue using the service..
                 </p>
               </div>
 

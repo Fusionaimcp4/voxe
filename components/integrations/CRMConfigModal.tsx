@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { CRMProvider, CRMConfiguration, TestConnectionResponse } from "@/lib/integrations/types";
 import { getCRMProvider, getCRMFormFields, getAllCRMProviders } from "@/lib/integrations/crm-providers";
 import { ChatwootConfigForm } from "./ChatwootConfigForm";
@@ -299,7 +300,19 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
                     }`}
                     disabled={isSaving || isProvisioning}
                   >
-                    <div className="text-2xl mb-2">{provider.icon}</div>
+                    <div className="mb-2 flex items-center justify-center h-8">
+                      {provider.icon.startsWith('/') ? (
+                        <Image
+                          src={provider.icon}
+                          alt={provider.name}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 object-contain"
+                        />
+                      ) : (
+                        <span className="text-2xl">{provider.icon}</span>
+                      )}
+                    </div>
                     <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{provider.name}</div>
                   </button>
                 ))}
@@ -324,20 +337,13 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
               />
             )}
             
-            {selectedProvider === 'CUSTOM' && (
+            {selectedProvider !== 'CHATWOOT' && (
               <CustomCRMConfigForm
                 configuration={configuration}
                 onChange={handleConfigurationChange}
-                disabled={isSaving}
+                disabled={isSaving || isProvisioning}
+                provider={selectedProvider}
               />
-            )}
-            
-            {!['CHATWOOT', 'CUSTOM'].includes(selectedProvider) && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-                <p className="text-yellow-700 dark:text-yellow-400 text-sm">
-                  🚧 {providerInfo.name} integration is coming soon!
-                </p>
-              </div>
             )}
           </div>
 

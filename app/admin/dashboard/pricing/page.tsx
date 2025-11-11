@@ -85,16 +85,6 @@ export default function AdminPricingPage() {
     );
   };
 
-  const addFeature = (planId: string) => {
-    setPricingPlans(prev => 
-      prev.map(plan => 
-        plan.id === planId 
-          ? { ...plan, features: [...plan.features, ''] }
-          : plan
-      )
-    );
-  };
-
   const removeFeature = (planId: string, featureIndex: number) => {
     setPricingPlans(prev => 
       prev.map(plan => 
@@ -407,17 +397,7 @@ export default function AdminPricingPage() {
 
                 {/* Features */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-slate-900">Features</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addFeature(plan.id)}
-                    >
-                      Add Feature
-                    </Button>
-                  </div>
+                  <Label className="text-slate-900">Features</Label>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">

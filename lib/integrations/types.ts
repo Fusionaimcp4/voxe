@@ -8,7 +8,7 @@ export type IntegrationStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR' | 'TESTING' | 'P
 export type IntegrationType = 'CALENDAR' | 'DATABASE' | 'API' | 'WEBHOOK' | 'CRM';
 
 // Helpdesk Provider types
-export type CRMProvider = 'CHATWOOT' | 'SALESFORCE' | 'HUBSPOT' | 'ZOHO' | 'PIPEDRIVE' | 'CUSTOM';
+export type CRMProvider = 'CHATWOOT' | 'SALESFORCE' | 'HUBSPOT' | 'FRONT' | 'ZENDESK' | 'CUSTOM';
 
 // Base helpdesk configuration interface
 export interface BaseCRMConfiguration {
@@ -82,11 +82,38 @@ export interface CustomCRMConfiguration extends BaseCRMConfiguration {
   };
 }
 
+// Front configuration
+export interface FrontConfiguration extends BaseCRMConfiguration {
+  provider: 'FRONT';
+  apiKey: string; // Will be encrypted
+  baseUrl: string;
+  syncSettings?: {
+    syncContacts: boolean;
+    syncInboxes: boolean;
+    syncInterval: number;
+  };
+}
+
+// Zendesk configuration
+export interface ZendeskConfiguration extends BaseCRMConfiguration {
+  provider: 'ZENDESK';
+  subdomain: string;
+  email: string;
+  apiToken: string; // Will be encrypted
+  syncSettings?: {
+    syncContacts: boolean;
+    syncTickets: boolean;
+    syncInterval: number;
+  };
+}
+
 // Union type for all helpdesk configurations
 export type CRMConfiguration = 
   | ChatwootConfiguration 
   | SalesforceConfiguration 
   | HubSpotConfiguration 
+  | FrontConfiguration
+  | ZendeskConfiguration
   | CustomCRMConfiguration;
 
 // Integration model (matches Prisma schema)

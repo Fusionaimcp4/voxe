@@ -241,6 +241,32 @@ export async function getUserChatwootConfig(
       return null;
     }
     
+    // First, check all CRM integrations for this user (for debugging)
+    const allIntegrations = await prisma.integration.findMany({
+      where: {
+        userId,
+        type: 'CRM',
+      },
+      select: {
+        id: true,
+        name: true,
+        isActive: true,
+        configuration: true,
+      },
+    });
+    
+    console.log(`[getUserChatwootConfig] Found ${allIntegrations.length} CRM integration(s) for user ${userId}:`, 
+      allIntegrations.map(i => ({
+        id: i.id,
+        name: i.name,
+        isActive: i.isActive,
+        provider: (i.configuration as any)?.provider,
+        hasBaseUrl: !!(i.configuration as any)?.baseUrl,
+        hasAccountId: !!(i.configuration as any)?.accountId,
+        hasApiKey: !!(i.configuration as any)?.apiKey,
+      }))
+    );
+    
     const integration = await prisma.integration.findFirst({
       where: {
         userId,
@@ -251,13 +277,21 @@ export async function getUserChatwootConfig(
     
     if (!integration) {
       console.log(`[getUserChatwootConfig] No active CRM integration found for user ${userId}`);
+      console.log(`[getUserChatwootConfig] Available integrations:`, allIntegrations.map(i => ({
+        id: i.id,
+        name: i.name,
+        isActive: i.isActive,
+      })));
       return null;
     }
     
     const config = integration.configuration as any;
     
+    console.log(`[getUserChatwootConfig] Found active integration ${integration.id} (${integration.name}), provider: ${config?.provider}`);
+    
     if (!config || config.provider !== 'CHATWOOT') {
       console.log(`[getUserChatwootConfig] Integration found but provider is not CHATWOOT (found: ${config?.provider})`);
+      console.log(`[getUserChatwootConfig] Full config keys:`, config ? Object.keys(config) : 'null');
       return null;
     }
     
@@ -266,10 +300,20 @@ export async function getUserChatwootConfig(
       let decryptedApiKey = config.apiKey;
       if (config.apiKey && config.apiKey.includes(':')) {
         decryptedApiKey = decrypt(config.apiKey);
+        console.log(`[getUserChatwootConfig] Decrypted API key for user ${userId}`);
+      } else {
+        console.log(`[getUserChatwootConfig] API key not encrypted (or missing) for user ${userId}`);
       }
       
       // Normalize baseUrl to remove trailing slash
       const normalizedBaseUrl = config.baseUrl?.replace(/\/+$/, '') || config.baseUrl;
+      
+      console.log(`[getUserChatwootConfig] ✅ Returning config for user ${userId}:`, {
+        baseUrl: normalizedBaseUrl,
+        accountId: config.accountId,
+        hasApiKey: !!decryptedApiKey,
+        apiKeyPrefix: decryptedApiKey ? `${decryptedApiKey.substring(0, 10)}...` : 'MISSING',
+      });
       
       return {
         ...config,
@@ -413,34 +457,22 @@ export async function deactivateAllActiveHelpdeskIntegrations(
     
     const deactivatedIds: string[] = [];
     
-    // Deactivate each integration and clear sensitive credentials
+    // Deactivate each integration WITHOUT clearing credentials
+    // Credentials should be preserved so they can be used when the integration is reactivated
+    // Only clear credentials when the integration is explicitly removed/deleted
     for (const integration of activeIntegrations) {
-      const config = integration.configuration as any;
-      const updatedConfig = { ...config };
-      
-      // Clear sensitive credentials based on provider type
-      if (config?.provider === 'CHATWOOT' && updatedConfig.apiKey) {
-        delete updatedConfig.apiKey;
-      } else if (config?.provider === 'SALESFORCE') {
-        if (updatedConfig.clientSecret) delete updatedConfig.clientSecret;
-        if (updatedConfig.securityToken) delete updatedConfig.securityToken;
-      } else if (config?.provider === 'HUBSPOT' && updatedConfig.apiKey) {
-        delete updatedConfig.apiKey;
-      } else if (config?.provider === 'CUSTOM' && updatedConfig.credentials) {
-        delete updatedConfig.credentials;
-      }
-      
-      // Deactivate the integration
+      // Just set isActive to false, preserve all configuration including API keys
       await prisma.integration.update({
         where: { id: integration.id },
         data: {
           isActive: false,
-          configuration: updatedConfig,
+          // Don't update configuration - preserve it as-is including API keys
         },
       });
       
       deactivatedIds.push(integration.id);
       console.log(`[deactivateAllActiveHelpdeskIntegrations] ✅ Deactivated helpdesk integration ${integration.id} (${integration.name}) for user ${userId}`);
+      console.log(`[deactivateAllActiveHelpdeskIntegrations] Preserved credentials for reactivation`);
     }
     
     console.log(`[deactivateAllActiveHelpdeskIntegrations] Deactivated ${deactivatedIds.length} helpdesk integration(s) for user ${userId}`);

@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
       : `http://${process.env.DEMO_DOMAIN || 'localhost:3000'}`;
     const demoUrl = `${baseUrl}/demo/${slug}`;
     
-    const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl);
+    const { inbox_id, website_token } = await createWebsiteInbox(businessName, demoUrl, userId);
 
     // Step 7: Render demo HTML
     // Get Chatwoot base URL from user config if available, otherwise use env var

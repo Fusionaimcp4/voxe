@@ -13,12 +13,6 @@ export const metadata: Metadata = {
   title: 'Voxe - All-in-One Conversations Platform | AI-First Customer Support',
   description:
     'Phone, SMS, WhatsApp, Email, Web Chat. AI answers 95% instantly. No per-seat or per-resolution fees. Self-hosted or managed. Your data, your control.',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   icons: {
     icon: '/logos/boxlogo32x32.ico',
     shortcut: '/logos/boxlogo48x48.ico',
@@ -30,6 +24,13 @@ export const metadata: Metadata = {
     images: ['/logos/boxlogo512x512.png'],
   },
   manifest: '/manifest.json',
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({

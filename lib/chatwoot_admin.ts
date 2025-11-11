@@ -18,22 +18,35 @@ async function getChatwootCredentials(userId?: string): Promise<ChatwootCredenti
   // Try to get user-specific Chatwoot configuration if userId provided
   if (userId) {
     try {
+      console.log(`[getChatwootCredentials] Attempting to get user-specific Chatwoot config for user ${userId}...`);
       const userConfig = await getUserChatwootConfig(userId);
       if (userConfig) {
-        console.log(`[getChatwootCredentials] Using user-specific Chatwoot config for user ${userId}`);
+        console.log(`[getChatwootCredentials] ✅ Using user-specific Chatwoot config for user ${userId}:`, {
+          baseUrl: userConfig.baseUrl,
+          accountId: userConfig.accountId,
+          hasApiKey: !!userConfig.apiKey,
+          apiKeyPrefix: userConfig.apiKey ? `${userConfig.apiKey.substring(0, 10)}...` : 'MISSING',
+        });
         base = userConfig.baseUrl;
         accountId = userConfig.accountId;
         apiKey = userConfig.apiKey;
       } else {
-        console.log(`[getChatwootCredentials] No user-specific Chatwoot config found for user ${userId}, will use env vars`);
+        console.warn(`[getChatwootCredentials] ⚠️ No user-specific Chatwoot config found for user ${userId}, will use env vars`);
       }
     } catch (error) {
-      console.warn('[getChatwootCredentials] Failed to get user Chatwoot config, falling back to env vars:', error);
+      console.error('[getChatwootCredentials] Failed to get user Chatwoot config, falling back to env vars:', error);
     }
+  } else {
+    console.log(`[getChatwootCredentials] No userId provided, will use env vars`);
   }
 
   // Fall back to environment variables if no user config
   if (!base || !accountId || !apiKey) {
+    console.log(`[getChatwootCredentials] Falling back to environment variables:`, {
+      hasBaseUrl: !!process.env.CHATWOOT_BASE_URL,
+      hasAccountId: !!process.env.CHATWOOT_ACCOUNT_ID,
+      hasApiKey: !!process.env.CHATWOOT_API_KEY,
+    });
     base = process.env.CHATWOOT_BASE_URL;
     accountId = process.env.CHATWOOT_ACCOUNT_ID;
     apiKey = process.env.CHATWOOT_API_KEY;

@@ -107,13 +107,52 @@ export async function PUT(
     
     if (body.configuration && existing.type === 'CRM') {
       const existingConfig = existing.configuration as any;
-      const updatedConfig = { ...existingConfig, ...body.configuration };
       
       // Get form fields to determine which fields are sensitive
-      const formFields = getCRMFormFields(updatedConfig.provider);
+      const formFields = getCRMFormFields(body.configuration.provider || existingConfig.provider);
       const sensitiveFields = formFields
         .filter(field => field.sensitive)
         .map(field => field.name);
+      
+      // Merge configurations, but preserve existing sensitive fields if they're not being updated
+      const updatedConfig = { ...existingConfig };
+      
+      // Only update fields that are explicitly provided in body.configuration
+      // For sensitive fields, only update if they're provided and not empty
+      for (const key in body.configuration) {
+        if (key === 'provider') {
+          updatedConfig.provider = body.configuration.provider;
+        } else if (key === 'baseUrl' || key === 'accountId') {
+          // Non-sensitive fields can be updated directly
+          updatedConfig[key] = body.configuration[key];
+        } else if (key === 'apiKey') {
+          // Only update API key if it's provided, not empty, and not the masked placeholder
+          const apiKeyValue = body.configuration.apiKey;
+          const isMaskedPlaceholder = apiKeyValue === '••••••••••••••••' || apiKeyValue === '**********';
+          const isEmpty = !apiKeyValue || apiKeyValue.trim() === '';
+          
+          if (!isEmpty && !isMaskedPlaceholder) {
+            // User provided a new API key value
+            updatedConfig.apiKey = apiKeyValue;
+            console.log(`[update-integration] API key updated (new value provided)`);
+          } else {
+            // Preserve existing API key if not provided, empty, or masked
+            console.log(`[update-integration] API key not provided/empty/masked in update, preserving existing value`);
+            if (existingConfig.apiKey) {
+              updatedConfig.apiKey = existingConfig.apiKey;
+            }
+          }
+        } else {
+          // For other fields, update if provided
+          updatedConfig[key] = body.configuration[key];
+        }
+      }
+      
+      // Explicitly preserve API key if it wasn't in body.configuration at all
+      if (!('apiKey' in body.configuration) && existingConfig.apiKey) {
+        updatedConfig.apiKey = existingConfig.apiKey;
+        console.log(`[update-integration] API key not in update request, preserving existing value`);
+      }
       
       // Encrypt sensitive fields if they're being updated
       for (const fieldPath of sensitiveFields) {

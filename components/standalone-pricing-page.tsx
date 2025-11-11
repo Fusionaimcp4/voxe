@@ -30,10 +30,10 @@ export function StandalonePricingPage() {
   const plans: PricingPlan[] = [
     {
       name: "Starter",
-      price: { monthly: 49, yearly: 500 },
+      price: { monthly: 42, yearly: 480 },
       description: "For small companies getting started with AI automation",
       features: [
-        "1 active chatbot",
+        "2 active chatbot",
         "Up to 12,000 chats / year",
         "Basic analytics",
       ],
@@ -41,7 +41,7 @@ export function StandalonePricingPage() {
     },
     {
       name: "Team",
-      price: { monthly: 139, yearly: 1418 },
+      price: { monthly: 105, yearly: 1071 },
       description: "For growing companies with team collaboration needs",
       features: [
         "5 active chatbots",
@@ -53,11 +53,11 @@ export function StandalonePricingPage() {
     },
     {
       name: "Business",
-      price: { monthly: 413, yearly: 4213 },
+      price: { monthly: 210, yearly: 2142 },
       description: "For businesses that need advanced AI features",
       features: [
-        "Unlimited active chatbots",
-        "Up to 300,000 chats / year",
+        "10 active chatbots",
+        "Up to 100,000 chats / year",
         "Advanced analytics",
       ],
       ctaText: "Start free trial",
@@ -77,8 +77,8 @@ export function StandalonePricingPage() {
 
   // Calculate annual discount percentage
   const calculateDiscount = () => {
-    const starterMonthly = 49 * 12 // $588
-    const starterYearly = 500
+    const starterMonthly = 42 * 12 // $588
+    const starterYearly = 428
     const discount = Math.round(((starterMonthly - starterYearly) / starterMonthly) * 100)
     return discount
   }
@@ -275,9 +275,9 @@ export function StandalonePricingPage() {
                   {/* Active Chatbots */}
                   <tr className="border-b border-slate-100 dark:border-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Active chatbots</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">1</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">2</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">5</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">Unlimited</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">10</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">Unlimited</td>
                   </tr>
                   
@@ -286,14 +286,16 @@ export function StandalonePricingPage() {
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Chats package</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">12,000 chats/yr</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">60,000 chats/yr</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">300,000 chats/yr</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">100,000 chats/yr</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">Unlimited</td>
                   </tr>
                   
                   {/* Training History */}
                   <tr className="border-b border-slate-100 dark:border-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Training history</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">7 days</td>
+                    <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
+                      <Check className="w-5 h-5 mx-auto" />
+                    </td>
                     <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
                       <Check className="w-5 h-5 mx-auto" />
                     </td>
@@ -308,7 +310,9 @@ export function StandalonePricingPage() {
                   {/* Team Collaboration */}
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Team collaboration</td>
-                    <td className="text-center py-4 px-6">—</td>
+                    <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
+                    <Check className="w-5 h-5 mx-auto" />
+                    </td>
                     <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
                       <Check className="w-5 h-5 mx-auto" />
                     </td>
@@ -323,7 +327,9 @@ export function StandalonePricingPage() {
                   {/* Version History */}
                   <tr className="border-b border-slate-100 dark:border-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Version history</td>
-                    <td className="text-center py-4 px-6">—</td>
+                    <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
+                      <Check className="w-5 h-5 mx-auto" />
+                    </td>
                     <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
                       <Check className="w-5 h-5 mx-auto" />
                     </td>
@@ -339,12 +345,8 @@ export function StandalonePricingPage() {
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">White label</td>
                     <td className="text-center py-4 px-6">—</td>
-                    <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
-                      <Check className="w-5 h-5 mx-auto" />
-                    </td>
-                    <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
-                      <Check className="w-5 h-5 mx-auto" />
-                    </td>
+                    <td className="text-center py-4 px-6">—</td>
+                    <td className="text-center py-4 px-6">—</td>
                     <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
                       <Check className="w-5 h-5 mx-auto" />
                     </td>
@@ -360,25 +362,25 @@ export function StandalonePricingPage() {
                   {/* Demos */}
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Demos</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">1</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">2</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">5</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">50</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">10</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">Unlimited</td>
                   </tr>
                   
                   {/* Knowledge Bases */}
                   <tr className="border-b border-slate-100 dark:border-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Knowledge Bases</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">1</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">2</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">5</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">25</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">50</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">Unlimited</td>
                   </tr>
                   
                   {/* Helpdesk Agents */}
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Helpdesk Agents</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">1 seat</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">2 seat</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">5 seats</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">10 seats</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">Unlimited</td>
@@ -387,9 +389,9 @@ export function StandalonePricingPage() {
                   {/* Documents */}
                   <tr className="border-b border-slate-100 dark:border-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-medium">Documents</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">1</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">10</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">50</td>
-                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">250</td>
+                    <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">1000</td>
                     <td className="text-center py-4 px-6 text-slate-900 dark:text-slate-100">Unlimited</td>
                   </tr>
                   
@@ -403,7 +405,9 @@ export function StandalonePricingPage() {
                   {/* Automatic bot building */}
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300">Automatic bot building</td>
-                    <td className="text-center py-4 px-6">—</td>
+                    <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
+                      <Check className="w-5 h-5 mx-auto" />
+                    </td>
                     <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
                       <Check className="w-5 h-5 mx-auto" />
                     </td>
@@ -435,7 +439,9 @@ export function StandalonePricingPage() {
                   {/* AI Knowledge */}
                   <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                     <td className="py-4 px-6 text-slate-700 dark:text-slate-300">AI Knowledge</td>
-                    <td className="text-center py-4 px-6">—</td>
+                    <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
+                      <Check className="w-5 h-5 mx-auto" />
+                    </td>
                     <td className="text-center py-4 px-6 text-emerald-600 dark:text-emerald-400">
                       <Check className="w-5 h-5 mx-auto" />
                     </td>

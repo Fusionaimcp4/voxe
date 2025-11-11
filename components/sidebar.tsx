@@ -45,6 +45,12 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
       description: "Overview and stats"
     },
     {
+      name: "Integrations",
+      href: "/dashboard/integrations",
+      icon: Settings,
+      description: "External connections"
+    },
+    {
       name: "Workflows",
       href: "/dashboard/workflows",
       icon: Workflow,
@@ -61,12 +67,6 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
       href: "/dashboard/knowledge-bases",
       icon: Database,
       description: "Document management"
-    },
-    {
-      name: "Integrations",
-      href: "/dashboard/integrations",
-      icon: Settings,
-      description: "External connections"
     },
     {
       name: "Usage",
