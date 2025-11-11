@@ -2,9 +2,6 @@
 const nextConfig = {
   // ✅ Strict production configuration for Docker / server deployment
 
-  eslint: {
-    ignoreDuringBuilds: true, // Skip ESLint during builds
-  },
   typescript: {
     ignoreBuildErrors: true, // Skip TypeScript checks during builds
   },
@@ -16,10 +13,19 @@ const nextConfig = {
   trailingSlash: false,
   skipTrailingSlashRedirect: true,
 
-  // ✅ Image optimization
+  // ✅ Image optimization (updated for Next.js 16)
   images: {
     unoptimized: true,
-    domains: ['localhost', 'voxe.mcp4.ai'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'voxe.mcp4.ai',
+      },
+    ],
     formats: ['image/webp', 'image/avif'],
   },
 
@@ -63,9 +69,14 @@ const nextConfig = {
     return config;
   },
 
+  // ✅ Turbopack configuration (Next.js 16 uses Turbopack by default)
+  turbopack: {
+    // Empty config to silence the warning - webpack config will still work
+  },
+
   // ✅ Explicitly allow hybrid rendering for dynamic routes
+  typedRoutes: false,
   experimental: {
-    typedRoutes: false,
     serverActions: {
       allowedOrigins: ['localhost:3000', 'voxe.mcp4.ai'],
     },
