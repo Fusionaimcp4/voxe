@@ -258,7 +258,7 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
               {hasChatvoxeIntegration && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
                   <p className="text-blue-700 dark:text-blue-400 text-sm">
-                    ℹ️ You already have a chatvoxe Helpdesk set up. You can configure it below or connect your own Chatwoot instance.
+                    ℹ️ A ChatVox Helpdesk is already configured. You can update its access token on the Integrations page or connect another helpdesk below. If you haven’t already, check your email for instructions to set your password. 
                   </p>
                 </div>
               )}
@@ -334,6 +334,7 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
                 configuration={configuration}
                 onChange={handleConfigurationChange}
                 disabled={isSaving || isProvisioning}
+                isChatvoxeIntegration={existingIntegration?.name === 'CHATVOXE' || (configuration?.provider === 'CHATWOOT' && (configuration as any)?.baseUrl === 'https://chatvoxe.mcp4.ai' && !(configuration as any)?.apiKey)}
               />
             )}
             

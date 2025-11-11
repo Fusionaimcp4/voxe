@@ -7,9 +7,10 @@ interface ChatwootConfigFormProps {
   configuration: any;
   onChange: (config: any) => void;
   disabled?: boolean;
+  isChatvoxeIntegration?: boolean; // Whether this is a CHATVOXE integration that needs API token
 }
 
-export function ChatwootConfigForm({ configuration, onChange, disabled }: ChatwootConfigFormProps) {
+export function ChatwootConfigForm({ configuration, onChange, disabled, isChatvoxeIntegration = false }: ChatwootConfigFormProps) {
   const formFields = getCRMFormFields('CHATWOOT');
   const [showApiToken, setShowApiToken] = useState(!!configuration?.apiKey);
 
@@ -94,13 +95,14 @@ export function ChatwootConfigForm({ configuration, onChange, disabled }: Chatwo
         }
 
         return (
-          <div key={field.name}>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              {field.label}
-              {field.validation.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
+          <React.Fragment key={field.name}>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {field.label}
+                {field.validation.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
 
-            {field.type === 'checkbox' ? (
+              {field.type === 'checkbox' ? (
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -158,10 +160,27 @@ export function ChatwootConfigForm({ configuration, onChange, disabled }: Chatwo
               />
             )}
 
-            {field.helpText && field.type !== 'checkbox' && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{field.helpText}</p>
+              {field.helpText && field.type !== 'checkbox' && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{field.helpText}</p>
+              )}
+            </div>
+            
+            {/* Show CHATVOXE setup instructions after Account ID and before API Access Token */}
+            {field.name === 'accountId' && isChatvoxeIntegration && !configuration?.apiKey && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mt-4">
+                <p className="text-blue-700 dark:text-blue-400 text-sm font-medium mb-2">
+                  Next Steps to Complete Setup:
+                </p>
+                <ol className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 list-decimal list-inside">
+                  <li>Check your email for the Chatwoot invitation</li>
+                  <li>Click the invitation link and set your password</li>
+                  <li>Log in to your admin account at <span className="font-mono text-blue-600 dark:text-blue-400">https://chatvoxe.mcp4.ai</span></li>
+                  <li>Go to Profile Settings → Access Token</li>
+                  <li>Copy your API token and paste it in the API Access Token field below</li>
+                </ol>
+              </div>
             )}
-          </div>
+          </React.Fragment>
         );
       })}
 
