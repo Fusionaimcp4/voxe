@@ -49,18 +49,45 @@ export function PricingCalculator() {
     const fetchPricingPlans = async () => {
       try {
         const response = await fetch('/api/pricing')
-        if (response.ok) {
-          const plans = await response.json()
-          setPricingPlans(plans)
-          // Set default to PRO plan if available, or first non-free plan
-          const proPlan = plans.find((p: PricingPlan) => p.tier === 'PRO')
-          const defaultPlan = proPlan || plans.find((p: PricingPlan) => p.tier !== 'FREE')
-          if (defaultPlan) {
-            setSelectedPlan(defaultPlan.id)
-          }
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('Failed to fetch pricing plans:', response.status, errorData)
+          setPricingPlans([])
+          setLoading(false)
+          return
+        }
+        
+        const plans = await response.json()
+        
+        // Validate that plans is an array
+        if (!Array.isArray(plans)) {
+          console.error('Invalid pricing plans response format:', plans)
+          setPricingPlans([])
+          setLoading(false)
+          return
+        }
+        
+        // Filter out any plans that don't have required fields
+        const validPlans = plans.filter((p: any) => p.id && p.tier && p.name && p.price !== undefined)
+        
+        if (validPlans.length === 0) {
+          console.warn('No valid pricing plans found')
+          setPricingPlans([])
+          setLoading(false)
+          return
+        }
+        
+        setPricingPlans(validPlans)
+        
+        // Set default to PRO plan if available, or first non-free plan
+        const proPlan = validPlans.find((p: PricingPlan) => p.tier === 'PRO')
+        const defaultPlan = proPlan || validPlans.find((p: PricingPlan) => p.tier !== 'FREE')
+        if (defaultPlan) {
+          setSelectedPlan(defaultPlan.id)
         }
       } catch (error) {
         console.error('Failed to fetch pricing plans:', error)
+        setPricingPlans([])
       } finally {
         setLoading(false)
       }
@@ -201,20 +228,31 @@ export function PricingCalculator() {
 
               <div className="space-y-2">
                 <Label htmlFor="voxePlan" className="text-slate-700 dark:text-slate-300">Voxe Plan</Label>
-                <Select value={selectedPlan || ""} onValueChange={setSelectedPlan} disabled={loading}>
+                <Select value={selectedPlan || ""} onValueChange={setSelectedPlan} disabled={loading || pricingPlans.length === 0}>
                   <SelectTrigger className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600">
-                    <SelectValue placeholder={loading ? "Loading plans..." : "Select Voxe plan"} />
+                    <SelectValue placeholder={loading ? "Loading plans..." : pricingPlans.length === 0 ? "No plans available" : "Select Voxe plan"} />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-slate-800">
-                    {pricingPlans
-                      .filter(plan => plan.tier !== 'ENTERPRISE')
-                      .map((plan) => (
-                        <SelectItem key={plan.id} value={plan.id} className="text-slate-900 dark:text-slate-100">
-                          {plan.name} - ${plan.price}/{plan.period}
-                        </SelectItem>
-                      ))}
+                    {pricingPlans.length === 0 ? (
+                      <div className="px-2 py-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        No plans available
+                      </div>
+                    ) : (
+                      pricingPlans
+                        .filter(plan => plan.tier !== 'ENTERPRISE')
+                        .map((plan) => (
+                          <SelectItem key={plan.id} value={plan.id} className="text-slate-900 dark:text-slate-100">
+                            {plan.name} - ${plan.price}/{plan.period}
+                          </SelectItem>
+                        ))
+                    )}
                   </SelectContent>
                 </Select>
+                {!loading && pricingPlans.length === 0 && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                    Unable to load pricing plans. Please refresh the page or contact support.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -9,6 +9,14 @@ export const runtime = 'nodejs';
 // GET - Get all pricing plans (public)
 export async function GET(request: NextRequest) {
   try {
+    if (!prisma) {
+      console.error('[pricing API] Prisma client not available');
+      return NextResponse.json(
+        { error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
+
     const pricingPlans = await prisma.pricingPlan.findMany({
       where: { isActive: true },
       orderBy: { price: 'asc' },
@@ -33,14 +41,21 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(pricingPlans.map(plan => ({
+    if (!pricingPlans || pricingPlans.length === 0) {
+      console.warn('[pricing API] No active pricing plans found in database');
+      return NextResponse.json([]); // Return empty array instead of error
+    }
+
+    const formattedPlans = pricingPlans.map(plan => ({
       ...plan,
       price: Number(plan.price), // Ensure price is a number
-    })));
+    }));
+
+    return NextResponse.json(formattedPlans);
   } catch (error) {
-    console.error('Failed to fetch pricing plans:', error);
+    console.error('[pricing API] Failed to fetch pricing plans:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch pricing plans' },
+      { error: 'Failed to fetch pricing plans', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

@@ -34,7 +34,6 @@ export const footerLinkGroups: ReadonlyArray<FooterLinkGroup> = [
     title: "Resources",
     links: [
       { label: "Help Center", href: "/help" },
-      { label: "Docs", href: "#", external: true },
       { label: "Blog", href: "https://mcp4.ai/blog", external: true },
     ],
   },

@@ -92,6 +92,7 @@ export default function WorkflowsPage() {
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [switchingModel, setSwitchingModel] = useState(false);
   const [helpdeskAgents, setHelpdeskAgents] = useState<Array<{id: string, name: string, email: string}>>([]);
+  const [canSwitchModel, setCanSwitchModel] = useState(false);
 
   useEffect(() => {
     fetchWorkflows();
@@ -188,7 +189,28 @@ export default function WorkflowsPage() {
     }
   };
 
-  const handleOpenConfiguration = (workflow: Workflow) => {
+  const checkModelSwitchEligibility = async () => {
+    try {
+      const response = await fetch('/api/dashboard/billing');
+      if (response.ok) {
+        const data = await response.json();
+        const isOverQuota = data.apiUsage.isOverQuota;
+        const hasBalance = data.credits.balance > 0;
+        
+        // Model switching is visible when:
+        // 1. User has exceeded quota OR
+        // 2. User has top-up credits
+        // This creates an "unlocked feature" experience
+        const canSwitch = isOverQuota || hasBalance;
+        setCanSwitchModel(canSwitch);
+      }
+    } catch (error) {
+      console.error('Failed to check model switch eligibility:', error);
+      setCanSwitchModel(false);
+    }
+  };
+
+  const handleOpenConfiguration = async (workflow: Workflow) => {
     // Set current timing thresholds from workflow configuration
     const currentThresholds = {
       assigneeThreshold: workflow.configuration.timingThresholds?.assigneeThreshold ?? 300,
@@ -200,6 +222,9 @@ export default function WorkflowsPage() {
     setTimingThresholds(currentThresholds);
     setSelectedModel(workflow.configuration.aiModel || '');
     setSelectedWorkflow(workflow);
+    
+    // Check if model switching is allowed
+    await checkModelSwitchEligibility();
   };
 
   const handleModelSwitch = async () => {
@@ -546,6 +571,8 @@ export default function WorkflowsPage() {
                 </div>
                 
                 <div className="space-y-6">
+                {/* Model Switching Section - Only visible when user has top-up credits OR exceeded quota */}
+                {canSwitchModel && (
                 <div>
   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
     AI Model
@@ -577,6 +604,7 @@ export default function WorkflowsPage() {
     </div>
   )}
 </div>
+                )}
                   
                   {/* Timing Thresholds Configuration */}
                   <div className="space-y-4">

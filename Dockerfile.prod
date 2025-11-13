@@ -50,6 +50,9 @@
   COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
   COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
   
+  # Copy app directory (required for API routes and server components)
+  COPY --from=builder --chown=nextjs:nodejs /app/app ./app
+  
   # Copy Prisma Client and schema
   COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
   

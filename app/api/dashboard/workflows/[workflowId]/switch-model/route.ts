@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { validateFusionModel, getModelDisplayName, convertToN8nModelFormat } from '@/lib/fusion-api';
 import { updateN8nWorkflowModel } from '@/lib/n8n-api';
+import { getDynamicTierLimits } from '@/lib/dynamic-tier-limits';
 
 interface SwitchModelRequest {
   workflowId: string;
@@ -53,6 +54,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'n8n workflow ID not found. Please ensure the workflow was properly created.' },
         { status: 400 }
+      );
+    }
+
+    // Check if model switching is allowed
+    // Model switching is only allowed when user is over quota AND has top-up credits
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        subscriptionTier: true,
+        apiCallsThisMonth: true,
+        balanceUsd: true,
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const tierLimits = await getDynamicTierLimits(user.subscriptionTier as any);
+    const quota = tierLimits.apiCallsPerMonth; // -1 means unlimited
+    const isOverQuota = quota !== -1 && user.apiCallsThisMonth >= quota;
+    const hasBalance = Number(user.balanceUsd) > 0;
+
+    // Model switching is allowed when:
+    // 1. User has exceeded their monthly quota OR
+    // 2. User has top-up credits available
+    // This creates an "unlocked feature" experience while ensuring cost control
+    // (switching is only visible/available when using pay-as-you-go credits)
+    if (!isOverQuota && !hasBalance) {
+      return NextResponse.json(
+        { 
+          error: 'Model switching is only available when you have exceeded your monthly quota or have top-up credits available.',
+          isOverQuota,
+          hasBalance,
+          apiCallsThisMonth: user.apiCallsThisMonth,
+          quota: quota === -1 ? 'unlimited' : quota,
+          balance: Number(user.balanceUsd)
+        },
+        { status: 403 }
       );
     }
 

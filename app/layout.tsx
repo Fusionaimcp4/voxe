@@ -59,8 +59,12 @@ export default function RootLayout({
               launcherTitle: "Chat with us"
             };
 
-            // Only load Chatwoot on non-demo pages to avoid conflicts
-            if (!window.location.pathname.startsWith('/demo/')) {
+            // Exclude Chatwoot widget from auth pages (login, signup, etc.)
+            // Keep it on demo pages and other user-facing pages
+            var pathname = window.location.pathname;
+            var isAuthPage = pathname.startsWith('/auth/');
+            
+            if (!isAuthPage) {
               function initChatwoot() {
                 var BASE_URL="${process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || ''}";
                 var g=document.createElement('script'),s=document.getElementsByTagName('script')[0];
