@@ -17,8 +17,6 @@ export function Header() {
     { name: "Platform", href: "#features-section" },
     { name: "Features", href: "#features-section" },
     { name: "Pricing", href: "/pricing-page" },
-   
-    { name: "Integration", href: "/integration-process" },
     { name: "Cost & Savings", href: "/cost-savings" },
   ]
 

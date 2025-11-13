@@ -83,10 +83,10 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">Create an account</h2>
-        <p className="text-sm text-zinc-400">
+        <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-100">Create an account</h2>
+        <p className="text-xs sm:text-sm text-zinc-400 px-2">
           Enter your details to create your account
         </p>
       </div>
@@ -103,33 +103,33 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-zinc-200">Full Name</Label>
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="name" className="text-sm sm:text-base text-zinc-200">Full Name</Label>
           <Input
             id="name"
             name="name"
             placeholder="John Doe"
             required
             disabled={isLoading}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500"
+            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="company" className="text-zinc-200">Company Name</Label>
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="company" className="text-sm sm:text-base text-zinc-200">Company Name</Label>
           <Input
             id="company"
             name="company"
             placeholder="Your Company"
             required
             disabled={isLoading}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500"
+            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-zinc-200">Email</Label>
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="email" className="text-sm sm:text-base text-zinc-200">Email</Label>
           <Input
             id="email"
             name="email"
@@ -137,12 +137,12 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
             placeholder="name@example.com"
             required
             disabled={isLoading}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500"
+            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-zinc-200">Password</Label>
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="password" className="text-sm sm:text-base text-zinc-200">Password</Label>
           <Input
             id="password"
             name="password"
@@ -150,27 +150,27 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
             placeholder="Create a password"
             required
             disabled={isLoading}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500"
+            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"
           />
         </div>
 
-        <div className="flex items-start space-x-3">
+        <div className="flex items-start space-x-2 sm:space-x-3 pt-1">
           <Checkbox 
             id="terms" 
             checked={acceptedTerms}
             onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
-            className="border-zinc-700 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 mt-0.5"
+            className="border-zinc-700 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 mt-0.5 h-5 w-5 sm:h-4 sm:w-4"
           />
           <label
             htmlFor="terms"
-            className="text-sm text-zinc-300 leading-relaxed"
+            className="text-xs sm:text-sm text-zinc-300 leading-relaxed cursor-pointer"
           >
             I agree to the{" "}
-            <Link href="/terms-of-service" className="text-emerald-400 hover:text-emerald-300">
+            <Link href="/terms-of-service" className="text-emerald-400 hover:text-emerald-300 underline">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="/privacy-policy" className="text-emerald-400 hover:text-emerald-300">
+            <Link href="/privacy-policy" className="text-emerald-400 hover:text-emerald-300 underline">
               Privacy Policy
             </Link>
           </label>
@@ -178,22 +178,22 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
 
         <Button
           type="submit"
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-12 sm:h-11 text-base font-semibold min-h-[44px]"
           disabled={isLoading || !acceptedTerms}
         >
           {isLoading && (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            <Icons.spinner className="mr-2 h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
           )}
           Create Account
         </Button>
       </form>
 
-      <div className="relative">
+      <div className="relative pt-2">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-zinc-700" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-zinc-900 px-2 text-zinc-400">
+          <span className="bg-zinc-900/60 px-2 text-zinc-400">
             Or continue with
           </span>
         </div>
@@ -202,14 +202,14 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
       <Button
         variant="outline"
         type="button"
-        className="w-full bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-zinc-100"
+        className="w-full bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-zinc-100 h-12 sm:h-11 text-base font-semibold min-h-[44px]"
         onClick={handleGoogleSignUp}
         disabled={isLoading}
       >
         {isLoading ? (
-          <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          <Icons.spinner className="mr-2 h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
         ) : (
-          <Icons.google className="mr-2 h-4 w-4" />
+          <Icons.google className="mr-2 h-5 w-5 sm:h-4 sm:w-4" />
         )}
         Google
       </Button>

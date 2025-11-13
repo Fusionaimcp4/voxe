@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,11 +8,29 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calculator, TrendingDown, Users, MessageSquare, Check, Star } from "lucide-react"
 import { ContactModal } from "./contact-modal"
+import { HelpPromoBanner } from "./help/HelpPromoBanner"
+
+interface PricingPlan {
+  id: string
+  tier: string
+  name: string
+  price: number
+  currency: string
+  period: string
+  description: string
+  features: string[]
+  isPopular: boolean
+  ctaText: string
+  ctaHref: string
+}
 
 export function PricingCalculator() {
   const [agents, setAgents] = useState(5)
   const [conversations, setConversations] = useState(1000)
   const [currentProvider, setCurrentProvider] = useState("intercom")
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([])
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   // EthioTelecom pricing comparison block (static data in ETB)
   const ethioTelecomPricing = {
@@ -26,6 +44,29 @@ export function PricingCalculator() {
       additionalChatbotChannel: 710842.60
     }
   }
+
+  useEffect(() => {
+    const fetchPricingPlans = async () => {
+      try {
+        const response = await fetch('/api/pricing')
+        if (response.ok) {
+          const plans = await response.json()
+          setPricingPlans(plans)
+          // Set default to PRO plan if available, or first non-free plan
+          const proPlan = plans.find((p: PricingPlan) => p.tier === 'PRO')
+          const defaultPlan = proPlan || plans.find((p: PricingPlan) => p.tier !== 'FREE')
+          if (defaultPlan) {
+            setSelectedPlan(defaultPlan.id)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch pricing plans:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPricingPlans()
+  }, [])
 
   const formatETB = (amount: number) => {
     return new Intl.NumberFormat('en-ET', { 
@@ -57,11 +98,20 @@ export function PricingCalculator() {
         currentCost = agents * 40 + conversations * 0.4
     }
 
-    // Voxe cost (estimated monthly)
-    VoxeCost = 50 // Fixed monthly fee for managed hosting
+    // Voxe cost from selected pricing plan
+    if (selectedPlan) {
+      const plan = pricingPlans.find(p => p.id === selectedPlan)
+      if (plan) {
+        VoxeCost = plan.price
+      } else {
+        VoxeCost = 29 // Default fallback
+      }
+    } else {
+      VoxeCost = 29 // Default fallback
+    }
 
     const savings = currentCost - VoxeCost
-    const savingsPercentage = ((savings / currentCost) * 100).toFixed(0)
+    const savingsPercentage = currentCost > 0 ? ((savings / currentCost) * 100).toFixed(0) : '0'
 
     return {
       currentCost: Math.round(currentCost),
@@ -74,9 +124,9 @@ export function PricingCalculator() {
   const results = calculateSavings()
 
   return (
-    <section className="w-full px-5 py-16 md:py-24 bg-white dark:bg-slate-900 relative overflow-hidden">
+    <section className="w-full px-5 py-16 md:py-24 bg-gradient-to-b from-blue-50 to-white dark:from-slate-950 dark:to-slate-900 relative overflow-hidden">
       {/* Very subtle light background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900" />
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-white dark:from-slate-950 dark:to-slate-900" />
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -108,7 +158,7 @@ export function PricingCalculator() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="agents" className="text-slate-400 dark:text-slate-400">Number of Support Agents</Label>
+                <Label htmlFor="agents" className="text-slate-700 dark:text-slate-300">Number of Support Agents</Label>
                 <Input
                   id="agents"
                   type="number"
@@ -116,12 +166,12 @@ export function PricingCalculator() {
                   onChange={(e) => setAgents(parseInt(e.target.value) || 0)}
                   min="1"
                   max="100"
-                  className="bg-slate-900 text-white dark:bg-slate-700 dark:text-white border-slate-700"
+                  className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="conversations" className="text-slate-400 dark:text-slate-400">Monthly Conversations</Label>
+                <Label htmlFor="conversations" className="text-slate-700 dark:text-slate-300">Monthly Conversations</Label>
                 <Input
                   id="conversations"
                   type="number"
@@ -129,22 +179,40 @@ export function PricingCalculator() {
                   onChange={(e) => setConversations(parseInt(e.target.value) || 0)}
                   min="100"
                   step="100"
-                  className="bg-slate-900 text-white dark:bg-slate-700 dark:text-white border-slate-700"
+                  className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="provider" className="text-slate-400 dark:text-slate-400">Current Provider</Label>
+                <Label htmlFor="provider" className="text-slate-700 dark:text-slate-300">Current Provider</Label>
                 <Select value={currentProvider} onValueChange={setCurrentProvider}>
-                  <SelectTrigger className="bg-slate-900 text-white dark:bg-slate-700 dark:text-white border-slate-700">
+                  <SelectTrigger className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600">
                     <SelectValue placeholder="Select your current provider" />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-slate-800">
-                    <SelectItem value="intercom">Intercom</SelectItem>
-                    <SelectItem value="zendesk">Zendesk</SelectItem>
-                    <SelectItem value="freshdesk">Freshdesk</SelectItem>
+                    <SelectItem value="intercom" className="text-slate-900 dark:text-slate-100">Intercom</SelectItem>
+                    <SelectItem value="zendesk" className="text-slate-900 dark:text-slate-100">Zendesk</SelectItem>
+                    <SelectItem value="freshdesk" className="text-slate-900 dark:text-slate-100">Freshdesk</SelectItem>
                     {/* <SelectItem value="ethiotelecom">EthioTelecom</SelectItem> */}
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="other" className="text-slate-900 dark:text-slate-100">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="voxePlan" className="text-slate-700 dark:text-slate-300">Voxe Plan</Label>
+                <Select value={selectedPlan || ""} onValueChange={setSelectedPlan} disabled={loading}>
+                  <SelectTrigger className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600">
+                    <SelectValue placeholder={loading ? "Loading plans..." : "Select Voxe plan"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-slate-800">
+                    {pricingPlans
+                      .filter(plan => plan.tier !== 'ENTERPRISE')
+                      .map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id} className="text-slate-900 dark:text-slate-100">
+                          {plan.name} - ${plan.price}/{plan.period}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -154,64 +222,69 @@ export function PricingCalculator() {
           {/* Results */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                <TrendingDown className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Your Savings
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-slate-700 dark:text-slate-300">
                 Monthly cost comparison with Voxe
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Current Cost */}
-              <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4">
+              <div className="bg-red-50 dark:bg-red-50/20 border-2 border-red-200 dark:border-red-300 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">Current Provider</p>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">${results.currentCost}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">per month</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-900">Current Provider</p>
+                    <p className="text-2xl font-bold text-red-700 dark:text-red-800">${results.currentCost}</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-700">per month</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{agents} agents</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{conversations} conversations</p>
+                    <p className="text-sm text-slate-800 dark:text-slate-800">{agents} agents</p>
+                    <p className="text-sm text-slate-800 dark:text-slate-800">{conversations} conversations</p>
                   </div>
                 </div>
               </div>
 
               {/* Voxe Cost */}
-              <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+              <div className="bg-blue-50 dark:bg-blue-50/20 border-2 border-blue-200 dark:border-blue-300 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">With Voxe</p>
-                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${results.VoxeCost}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">per month</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-900">With Voxe</p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-800">${results.VoxeCost}</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-700">per month</p>
+                    {selectedPlan && (
+                      <p className="text-xs text-blue-700 dark:text-blue-800 mt-1 font-medium">
+                        {pricingPlans.find(p => p.id === selectedPlan)?.name || ''}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-slate-700 dark:text-slate-300">Unlimited agents</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">Unlimited conversations</p>
+                    <p className="text-sm text-slate-800 dark:text-slate-800">Unlimited agents</p>
+                    <p className="text-sm text-slate-800 dark:text-slate-800">Unlimited conversations</p>
                   </div>
                 </div>
               </div>
 
               {/* Savings */}
-              <div className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded-xl p-6 text-center">
-                <div className="text-4xl font-bold text-slate-900 dark:text-white mb-2">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-100/30 dark:to-blue-50/20 border-2 border-blue-300 dark:border-blue-400 rounded-xl p-6 text-center">
+                <div className="text-4xl font-bold text-blue-800 dark:text-blue-900 mb-2">
                   ${results.savings}
                 </div>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-900 mb-1">
                   Monthly Savings
                 </p>
-                <p className="text-sm text-slate-700 dark:text-slate-300">
+                <p className="text-sm text-slate-700 dark:text-slate-800">
                   {results.savingsPercentage}% cost reduction
                 </p>
               </div>
 
               {/* Annual Savings */}
-              <div className="text-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-                <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+              <div className="text-center bg-blue-50 dark:bg-blue-50/20 border-2 border-blue-200 dark:border-blue-300 rounded-xl p-4">
+                <div className="text-2xl font-bold text-blue-800 dark:text-blue-900 mb-1">
                   ${results.savings * 12}
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300">
+                <p className="text-sm text-slate-700 dark:text-slate-800">
                   Annual savings
                 </p>
               </div>
@@ -317,21 +390,9 @@ export function PricingCalculator() {
           </div>
         )}
 
-        {/* CTA */}
-        <div className="mt-16 text-center">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-10 max-w-4xl mx-auto">
-            <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
-              Ready to Start Saving?
-            </h3>
-            <p className="text-lg text-slate-700 dark:text-slate-300 mb-8">
-              Book a demo to see how Voxe can transform your customer support while reducing costs.
-            </p>
-            <ContactModal>
-              <Button size="lg" className="bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 px-10 py-6 text-lg">
-                Book a Demo
-              </Button>
-            </ContactModal>
-          </div>
+        {/* Promotional Banner */}
+        <div className="mt-16">
+          <HelpPromoBanner />
         </div>
       </div>
     </section>

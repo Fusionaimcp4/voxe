@@ -20,6 +20,7 @@ export const footerLinkGroups: ReadonlyArray<FooterLinkGroup> = [
       { label: "Demo", href: "/dashboard/userdemo" },
       { label: "Pricing", href: "/#pricing" },
       { label: "Features", href: "/#features" },
+      { label: "Integration", href: "/integration-process" },
     ],
   },
   {
@@ -32,8 +33,9 @@ export const footerLinkGroups: ReadonlyArray<FooterLinkGroup> = [
   {
     title: "Resources",
     links: [
+      { label: "Help Center", href: "/help" },
       { label: "Docs", href: "#", external: true },
-      { label: "Blog", href: "https://chatwoot.mcp4.ai/hc/installation/en/categories/getting-started", external: true },
+      { label: "Blog", href: "https://mcp4.ai/blog", external: true },
     ],
   },
   {

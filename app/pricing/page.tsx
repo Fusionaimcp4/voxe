@@ -308,7 +308,7 @@ export default function PricingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`relative bg-white dark:bg-slate-800 rounded-3xl border-2 transition-all duration-300 overflow-hidden ${
+                className={`relative bg-white dark:bg-slate-800 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${
                   plan.isPopular 
                     ? 'border-emerald-500 shadow-2xl shadow-emerald-500/20 md:scale-105 md:-mt-4 ring-4 ring-emerald-500/10' 
                     : 'border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:border-slate-300 dark:hover:border-slate-600 hover:-translate-y-1'

@@ -65,10 +65,10 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">Welcome back</h2>
-        <p className="text-sm text-zinc-400">
+        <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-100">Welcome back</h2>
+        <p className="text-xs sm:text-sm text-zinc-400 px-2">
           Enter your email to sign in to your account
         </p>
       </div>
@@ -79,9 +79,9 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-zinc-200">Email</Label>
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="email" className="text-sm sm:text-base text-zinc-200">Email</Label>
           <Input
             id="email"
             name="email"
@@ -89,12 +89,12 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
             placeholder="name@example.com"
             required
             disabled={isLoading}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500"
+            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-zinc-200">Password</Label>
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="password" className="text-sm sm:text-base text-zinc-200">Password</Label>
           <Input
             id="password"
             name="password"
@@ -102,7 +102,7 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
             placeholder="Enter your password"
             required
             disabled={isLoading}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500"
+            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"
           />
         </div>
 
@@ -110,7 +110,7 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
           <button
             type="button"
             onClick={() => router.push('/auth/forgot-password')}
-            className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="text-xs sm:text-sm text-emerald-400 hover:text-emerald-300 transition-colors min-h-[44px] py-2"
             disabled={isLoading}
           >
             Forgot your password?
@@ -119,22 +119,22 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
 
         <Button
           type="submit"
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-12 sm:h-11 text-base font-semibold min-h-[44px]"
           disabled={isLoading}
         >
           {isLoading && (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            <Icons.spinner className="mr-2 h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
           )}
           Sign In
         </Button>
       </form>
 
-      <div className="relative">
+      <div className="relative pt-2">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-zinc-700" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-zinc-900 px-2 text-zinc-400">
+          <span className="bg-zinc-900/60 px-2 text-zinc-400">
             Or continue with
           </span>
         </div>
@@ -143,14 +143,14 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
       <Button
         variant="outline"
         type="button"
-        className="w-full bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-zinc-100"
+        className="w-full bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-zinc-100 h-12 sm:h-11 text-base font-semibold min-h-[44px]"
         onClick={handleGoogleSignIn}
         disabled={isLoading}
       >
         {isLoading ? (
-          <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          <Icons.spinner className="mr-2 h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
         ) : (
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+          <svg className="mr-2 h-5 w-5 sm:h-4 sm:w-4" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
