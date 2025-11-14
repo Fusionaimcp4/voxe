@@ -30,8 +30,8 @@ export function StandalonePricingPage() {
   const plans: PricingPlan[] = [
     {
       name: "Starter",
-      price: { monthly: 42, yearly: 480 },
-      description: "For small companies getting started with AI automation",
+      price: { monthly: 45, yearly: 499 },
+      description: "For small teams who want 24/7 AI support without needing a full helpdesk team.",
       features: [
         "2 active chatbot",
         "Up to 12,000 chats / year",
@@ -41,8 +41,8 @@ export function StandalonePricingPage() {
     },
     {
       name: "Team",
-      price: { monthly: 105, yearly: 1071 },
-      description: "For growing companies with team collaboration needs",
+      price: { monthly: 115, yearly: 1269 },
+      description: "For growing companies that need AI + human collaboration with automatic routing.",
       features: [
         "5 active chatbots",
         "Up to 60,000 chats / year",
@@ -53,8 +53,8 @@ export function StandalonePricingPage() {
     },
     {
       name: "Business",
-      price: { monthly: 210, yearly: 2142 },
-      description: "For businesses that need advanced AI features",
+      price: { monthly: 245, yearly: 2699 },
+      description: "For high-volume teams needing advanced AI automation, analytics, and scaling.",
       features: [
         "10 active chatbots",
         "Up to 100,000 chats / year",
@@ -77,8 +77,8 @@ export function StandalonePricingPage() {
 
   // Calculate annual discount percentage
   const calculateDiscount = () => {
-    const starterMonthly = 42 * 12 // $588
-    const starterYearly = 428
+    const starterMonthly = 45 * 12 // $588
+    const starterYearly = 499
     const discount = Math.round(((starterMonthly - starterYearly) / starterMonthly) * 100)
     return discount
   }
@@ -631,59 +631,59 @@ export function StandalonePricingPage() {
             {[
               {
                 question: "How many chatbots can I create?",
-                answer: "You can create as many chatbots as needed, but the number of active ones depends on your pricing plan."
+                answer: "With Voxe, you can create as many chatbots as you need. Your pricing plan only limits how many can be active at the same time"
               },
               {
                 question: "Can I use ChatBot on several websites?",
-                answer: "Yes, you can use your chatbots on multiple websites with any plan."
+                answer:"Yes. You can install Voxe on multiple websites with any plan.You can use the same chatbot across sites or create different bots for each brand or domain, as long as they fit within your plan’s active chatbot limit."
               },
               {
                 question: "What happens when I exceed my chats package?",
-                answer: "After you exceed your chats package, you'll be charged $0.05 per additional chat. We don't count empty chats or chats your chatbot hasn't responded to."
+                answer: "If you go over your included chat quota, Voxe simply uses your credit balance to cover additional usage.You can add funds at any time, and we deduct the exact API cost of each request—no hidden fees, no inflated “per-chat” charges. Your Billing & Usage dashboard shows real-time token usage, cost per request, and total spend, so you always know exactly what you’re paying for.."
               },
               {
                 question: "What payment forms do you accept?",
-                answer: "We accept major credit cards, including Visa, Mastercard, American Express, and Discover. Enterprise customers can request alternative payment methods."
+                answer: "We accept all major credit cards, including Visa, Mastercard, American Express, and Discover.Enterprise customers can request alternative payment options such as bank transfer or invoice-based billing."
               },
               {
                 question: "What happens after my trial ends?",
-                answer: "Your data and setup remain intact and safe. To continue using Voxe, simply choose a plan and provide your payment details."
+                answer: "Your entire setup—chatbots, workflows, knowledge bases, and integrations—remains safe and intact.To keep using Voxe without interruption, just choose a plan and enter your payment details. Your account will continue exactly where you left off."
               },
               {
                 question: "Can I respond to chats that my chatbot handles?",
-                answer: "Yes. Voxe can transfer a chat to a human agent in LiveChat or create a ticket in HelpDesk."
+                answer: "Yes. Voxe is built for seamless human + AI collaboration.\n\nWhen a customer needs a human, Voxe can:\n\nTransfer the chat to a human agent inside your Voxe Helpdesk\n\nAuto-assign the conversation to the correct team based on context\n\nAllow any agent to take over instantly at any time\n\nOnce a human takes over, the main AI steps back completely and will not interrupt.\n\nBehind the scenes, Voxe's secondary monitoring AI keeps an eye on every conversation.\n\nIf a message goes unanswered for too long, it will:\n\nRe-engage the customer with a polite assurance\n\nNotify your agent(s) in the background\n\nEscalate if needed\n\nThis hybrid system ensures customers always get a fast, accurate response—whether from AI or your team."
               },
               {
-                question: "Where do you store data?",
-                answer: "Voxe stores its customers' information in secure data centers with encryption and compliance certifications."
+                "question": "Where do you store data?",
+                "answer": "All Voxe data is hosted in secure, encrypted cloud infrastructure. Customer information, chat history, and knowledge bases are stored with industry-standard encryption and strict access controls. Your data never leaves our servers and is never shared with third parties."
               },
               {
-                question: "How many chatbots can I activate?",
-                answer: "The number of active chatbots depends on your plan. An active chatbot is one that is connected to one of the channel integrations."
+                "question": "How many chatbots can I activate?",
+                "answer": "You can create unlimited chatbots, but each plan defines how many can be active at the same time. An active chatbot is one that is live and connected to a website or channel integration."
               },
               {
                 question: "What is a paid chat?",
                 answer: "It's a chat that contains at least one successful interaction between the user and the chatbot. You'll never pay for spam chats."
               },
               {
-                question: "How can I get an invoice?",
-                answer: "After each successful payment, we'll email you an invoice at the provided email address."
+                "question": "How can I get an invoice?",
+                "answer": "After each successful payment, Voxe emails you a copy of your invoice. You can also view and download all past invoices directly from your Billing Dashboard at any time."
               },
               {
-                question: "Is there any contract required?",
-                answer: "No, there are no contracts or hidden fees. You can cancel anytime."
+                "question": "Is there any contract required?",
+                "answer": "No. Voxe is a simple month-to-month service with no long-term contracts or hidden fees. You can upgrade, downgrade, or cancel at any time."
               },
               {
-                question: "Do I need to provide my credit card details to register?",
-                answer: "We don't require your credit card details to start your free trial. We'll need them when your trial ends, and you decide to upgrade to a paid plan."
+                "question": "Do I need to provide my credit card details to register?",
+                "answer": "No. You can start your free trial without entering any payment information. When you're ready to upgrade, you'll enter your credit card securely through Stripe, our payment processor."
               },
               {
-                question: "What languages does ChatBot support?",
-                answer: "Voxe lets you build bots in any language. The dashboard is available in multiple languages."
+                "question": "What languages does Voxe support?",
+                "answer": "Voxe’s AI can understand and respond in virtually any language. Your chatbot automatically detects the customer’s language and replies accordingly. Inside the helpdesk, agents can also reply in any language with the help of built-in Google Translate integration, which translates incoming messages into the agent’s preferred language and converts replies back for the customer. For the best accuracy, we recommend enabling translation for multilingual support teams."
               },
               {
-                question: "Do you provide tips on how to create a chatbot?",
-                answer: "You can browse our Help Center and watch video tutorials to get started."
+                "question": "Do you provide tips on how to create a chatbot?",
+                "answer": "Yes. You can browse our Help Center and watch step-by-step video tutorials to learn everything from building your first chatbot to configuring advanced workflows. You can also ask our AI chat widget for technical guidance at any time—it can walk you through setup, detect where you are in the process, and help you complete each step."
               },
             ].map((faq, index) => {
               const isOpen = openFaqIndex === index
@@ -750,7 +750,7 @@ export function StandalonePricingPage() {
                 iconColor: "bg-purple-100 dark:bg-purple-900/20",
                 iconTextColor: "text-purple-500",
                 name: "KnowledgeBase",
-                description: "Guide and educate customers"
+                description: "Business information, AI training library"
               },
               {
                 icon: Layout,

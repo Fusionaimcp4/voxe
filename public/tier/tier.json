@@ -63,7 +63,7 @@
     "BUSINESS": {
       "limits": {
         "agents": 10,
-        "inboxes": 20,
+        "inboxes": 10,
         "captain_responses": 100,
         "captain_documents": 1000
       },

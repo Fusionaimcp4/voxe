@@ -172,7 +172,7 @@ export default function PricingPage() {
     let displayPrice = price;
     if (billingCycle === 'yearly') {
       displayPrice = price * 12; // Start with annual price
-      const discountPct = annualDiscountPercentage && annualDiscountPercentage > 0 ? annualDiscountPercentage : 15; // Default to 15% if missing or 0
+      const discountPct = annualDiscountPercentage && annualDiscountPercentage > 0 ? annualDiscountPercentage : 8; // Default to 15% if missing or 0
       displayPrice = displayPrice * (1 - discountPct / 100);
     }
     
@@ -286,9 +286,9 @@ export default function PricingPage() {
               >
                 Yearly
                 {billingCycle === 'yearly' ? (
-                  <span className="ml-2 text-xs px-2.5 py-1 bg-emerald-700 rounded-lg font-bold shadow-sm">Save 15%</span>
+                  <span className="ml-2 text-xs px-2.5 py-1 bg-emerald-700 rounded-lg font-bold shadow-sm">Save 8%</span>
                 ) : (
-                  <span className="ml-2 text-xs px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg font-semibold">Save 15%</span>
+                  <span className="ml-2 text-xs px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg font-semibold">Save 8%</span>
                 )}
               </button>
             </div>

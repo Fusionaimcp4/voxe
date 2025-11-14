@@ -20,7 +20,7 @@ export function PricingSection() {
           </p>
           <div className="flex flex-col sm:flex-row gap-8 justify-center mb-10">
             <div className="text-center">
-              <div className="text-5xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">60-80%</div>
+              <div className="text-5xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">40-60%</div>
               <div className="text-base font-semibold text-slate-900 dark:text-white">Cost Reduction</div>
             </div>
             <div className="text-center">
@@ -29,7 +29,7 @@ export function PricingSection() {
             </div>
             <div className="text-center">
               <div className="text-5xl font-bold text-slate-900 dark:text-white mb-2">0</div>
-              <div className="text-base font-semibold text-slate-900 dark:text-white">Per-Seat Fees</div>
+              <div className="text-base font-semibold text-slate-900 dark:text-white">Per-resolution Fees</div>
             </div>
           </div>
           <Link href="/cost-savings">
