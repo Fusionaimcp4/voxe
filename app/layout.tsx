@@ -38,6 +38,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Get Chatwoot base URL with fallback
+  const chatwootBaseUrl = (process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || 'https://chatvoxe.mcp4.ai').replace(/\/+$/, '');
+
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <head />
@@ -55,7 +58,7 @@ export default function RootLayout({
             // Configure Chatwoot settings
             window.chatwootSettings = {
               position: "right",
-              type: "standard",
+              type: "expanded_bubble",
               launcherTitle: "Chat with us"
             };
 
@@ -66,19 +69,29 @@ export default function RootLayout({
             
             if (!isAuthPage) {
               function initChatwoot() {
-                var BASE_URL="${process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || ''}";
+                var BASE_URL="${chatwootBaseUrl}";
+                
+                if (!BASE_URL) {
+                  console.error('Chatwoot BASE_URL is not configured');
+                  return;
+                }
+                
                 var g=document.createElement('script'),s=document.getElementsByTagName('script')[0];
                 g.src=BASE_URL+"/packs/js/sdk.js";
                 g.async = true;
+                g.crossOrigin = "anonymous";
                 s.parentNode.insertBefore(g,s);
                 g.onload=function(){
                   if (window.chatwootSDK) {
                     window.chatwootSDK.run({
-                      websiteToken: '7LqvDSaNM9GJksLRzDd6yXzY',
+                      websiteToken: 'BUnYjnSeotHWyqKYSWgzpFFq',
                       baseUrl: BASE_URL
                     });
                   }
-                }
+                };
+                g.onerror=function(error){
+                  console.error('Failed to load Chatwoot SDK from', BASE_URL + "/packs/js/sdk.js", error);
+                };
               }
               
               // Load when browser is idle or after 3 seconds

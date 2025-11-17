@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, X, Plus, UserPlus, Settings2, AlertCircle } from "lucide-react";
+import { Users, X, Plus, UserPlus, Settings2, AlertCircle, ExternalLink } from "lucide-react";
 import { notifications } from "@/lib/notifications";
 
 interface HelpdeskModalProps {
@@ -37,6 +37,7 @@ export function HelpdeskModal({
   const [agents, setAgents] = useState<Agent[]>([]);
   const [inboxes, setInboxes] = useState<Inbox[]>([]);
   const [loading, setLoading] = useState(true);
+  const [helpdeskBaseUrl, setHelpdeskBaseUrl] = useState<string>('https://chatvoxe.mcp4.ai');
   
   // Create Agent form state
   const [agentName, setAgentName] = useState('');
@@ -80,6 +81,30 @@ export function HelpdeskModal({
       const inboxesData = await inboxesRes.json();
       if (inboxesRes.ok) {
         setInboxes(inboxesData.inboxes || []);
+      }
+
+      // Fetch helpdesk base URL from user's integration configuration
+      try {
+        const integrationsRes = await fetch('/api/dashboard/integrations');
+        const integrationsData = await integrationsRes.json();
+        if (integrationsRes.ok && integrationsData.integrations) {
+          // Find active CRM integration with Chatwoot provider
+          const chatwootIntegration = integrationsData.integrations.find(
+            (integration: any) => 
+              integration.type === 'CRM' && 
+              integration.isActive && 
+              integration.configuration?.provider === 'CHATWOOT'
+          );
+          
+          if (chatwootIntegration?.configuration?.baseUrl) {
+            // Remove trailing slash if present
+            const baseUrl = chatwootIntegration.configuration.baseUrl.replace(/\/+$/, '');
+            setHelpdeskBaseUrl(baseUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch helpdesk base URL:', error);
+        // Keep default value
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -257,7 +282,7 @@ export function HelpdeskModal({
                 Create New Helpdesk Agent
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                Create a new Chatwoot agent account. Agents can be assigned to inboxes in the Manage Collaborators tab.
+                Create a new team member agent account. Agents can be assigned to inboxes in the Manage Collaborators tab.
               </p>
             </div>
 
@@ -295,7 +320,7 @@ export function HelpdeskModal({
                   className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:border-emerald-500 transition-colors text-slate-900 dark:text-slate-100 disabled:opacity-50"
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                  This will be the display name in Chatwoot
+                  This will be the display name in your helpdesk environment
                 </p>
               </div>
 
@@ -350,9 +375,22 @@ export function HelpdeskModal({
                 ℹ️ What happens next?
               </p>
               <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
-                <li>A new Chatwoot agent account will be created</li>
+                <li>A new team member agent account will be created</li>
                 <li>The agent email will be generated using plus-addressing</li>
                 <li>You can assign the agent to inboxes in the Manage Collaborators tab</li>
+                <li>The agent will be able to login to your helpdesk environment using the generated plus-addressed and password you provided</li>
+                <li>
+                  Helpdesk will be accessible at{' '}
+                  <a
+                    href={helpdeskBaseUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 underline inline-flex items-center gap-1 font-medium"
+                  >
+                    {helpdeskBaseUrl}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </li>
               </ul>
             </div>
 

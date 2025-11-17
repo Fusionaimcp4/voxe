@@ -114,10 +114,10 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
   CHATWOOT: [
     {
       name: 'baseUrl',
-      label: 'Chatwoot Base URL',
+      label: 'Helpdesk Base URL',
       type: 'url',
-      placeholder: 'https://app.chatwoot.com',
-      helpText: 'Your Chatwoot installation URL (e.g., https://app.chatwoot.com or your self-hosted URL)',
+      placeholder: 'https://app.example.com',
+      helpText: 'Your helpdesk installation URL (e.g., https://app.example.com or your self-hosted URL)',
       validation: {
         required: true,
         pattern: /^https?:\/\/.+/,
@@ -129,7 +129,7 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
       label: 'Account ID',
       type: 'text',
       placeholder: '1',
-      helpText: 'Your Chatwoot account ID (found in Settings > Account)',
+      helpText: 'Your helpdesk account ID (found in Settings > Account)',
       validation: {
         required: true,
         pattern: /^\d+$/,
@@ -141,7 +141,7 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
       label: 'API Access Token',
       type: 'password',
       placeholder: 'Enter your API token',
-      helpText: 'Your Chatwoot API access token (found in Profile Settings > Access Token)',
+      helpText: 'Your helpdesk API access token (found in Profile Settings > Access Token)',
       validation: {
         required: true,
         minLength: 10,
@@ -152,7 +152,7 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
       name: 'features.autoCreateInboxes',
       label: 'Auto-create Inboxes',
       type: 'checkbox',
-      helpText: 'Automatically create Chatwoot inboxes for new demos',
+      helpText: 'Automatically create helpdesk inboxes for new demos',
       validation: {
         required: false,
       },
@@ -174,7 +174,7 @@ export const CRM_FORM_FIELDS: Record<CRMProvider, FormFieldDefinition[]> = {
       name: 'features.syncContacts',
       label: 'Sync Contacts',
       type: 'checkbox',
-      helpText: 'Synchronize demo leads with Chatwoot contacts',
+      helpText: 'Synchronize demo leads with helpdesk contacts',
       validation: {
         required: false,
       },

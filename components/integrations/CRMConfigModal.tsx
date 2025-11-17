@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { ChevronDown } from "lucide-react";
 import { CRMProvider, CRMConfiguration, TestConnectionResponse } from "@/lib/integrations/types";
 import { getCRMProvider, getCRMFormFields, getAllCRMProviders } from "@/lib/integrations/crm-providers";
 import { ChatwootConfigForm } from "./ChatwootConfigForm";
@@ -34,6 +35,7 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
   const [error, setError] = useState<string | null>(null);
   const [provisioningError, setProvisioningError] = useState<string | null>(null);
   const [provisioningSuccess, setProvisioningSuccess] = useState<string | null>(null);
+  const [isProviderSectionExpanded, setIsProviderSectionExpanded] = useState(false);
 
   const providerInfo = getCRMProvider(selectedProvider);
   const allProviders = getAllCRMProviders();
@@ -228,7 +230,7 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
                     Create chatvoxe Helpdesk
                   </h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Automatically provision a hosted Chatwoot workspace on chatvoxe
+                  Automatically set up your helpdesk environment on Voxe with one click.
                   </p>
                 </div>
               </div>
@@ -282,44 +284,66 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
             </div>
           )}
 
-          {/* Helpdesk Provider Selection */}
+          {/* Helpdesk Provider Selection - Collapsible */}
           {!existingIntegration && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">
-                Helpdesk Provider <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {allProviders.map((provider) => (
-                  <button
-                    key={provider.id}
-                    onClick={() => handleProviderChange(provider.id)}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      selectedProvider === provider.id
-                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                        : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-500'
-                    }`}
-                    disabled={isSaving || isProvisioning}
-                  >
-                    <div className="mb-2 flex items-center justify-center h-8">
-                      {provider.icon.startsWith('/') ? (
-                        <Image
-                          src={provider.icon}
-                          alt={provider.name}
-                          width={32}
-                          height={32}
-                          className="w-8 h-8 object-contain"
-                        />
-                      ) : (
-                        <span className="text-2xl">{provider.icon}</span>
-                      )}
-                    </div>
-                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{provider.name}</div>
-                  </button>
-                ))}
+              {/* Clickable Header */}
+              <button
+                onClick={() => setIsProviderSectionExpanded(!isProviderSectionExpanded)}
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                disabled={isSaving || isProvisioning}
+              >
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Connect Your Own Helpdesk
+                </span>
+                <ChevronDown
+                  className={`w-5 h-5 text-slate-500 dark:text-slate-400 transition-transform duration-300 ${
+                    isProviderSectionExpanded ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Collapsible Content */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isProviderSectionExpanded ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {allProviders.map((provider) => (
+                      <button
+                        key={provider.id}
+                        onClick={() => handleProviderChange(provider.id)}
+                        className={`p-4 rounded-xl border-2 transition-all ${
+                          selectedProvider === provider.id
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                            : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-500'
+                        }`}
+                        disabled={isSaving || isProvisioning}
+                      >
+                        <div className="mb-2 flex items-center justify-center h-8">
+                          {provider.icon.startsWith('/') ? (
+                            <Image
+                              src={provider.icon}
+                              alt={provider.name}
+                              width={32}
+                              height={32}
+                              className="w-8 h-8 object-contain"
+                            />
+                          ) : (
+                            <span className="text-2xl">{provider.icon}</span>
+                          )}
+                        </div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{provider.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {providerInfo.description}
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">
-                {providerInfo.description}
-              </p>
             </div>
           )}
 

@@ -185,24 +185,30 @@ export function ChatwootConfigForm({ configuration, onChange, disabled, isChatvo
       })}
 
       {/* Additional Information */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mt-6">
-        <p className="text-blue-700 dark:text-blue-400 text-sm mb-2 font-medium">
-          ℹ️ How to get your Chatwoot credentials:
-        </p>
-        <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
-          <li><strong>Base URL:</strong> Your Chatwoot installation URL (e.g., https://app.chatwoot.com)</li>
-          <li><strong>Account ID:</strong> Found in Settings → Account → Account Details</li>
-          <li><strong>API Token:</strong> Go to Profile Settings → Access Token → Copy Token</li>
-        </ul>
-        <a
-          href="https://www.chatwoot.com/docs/product/channels/api/client-apis"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs mt-2 inline-block"
-        >
-          View Chatwoot API Documentation →
-        </a>
-      </div>
+<div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mt-6">
+  <p className="text-blue-700 dark:text-blue-400 text-sm mb-2 font-medium">
+    ℹ️ Choose how you want to connect your helpdesk
+  </p>
+
+  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+    Voxe gives you two ways to set up your helpdesk:
+  </p>
+
+  <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside mt-2">
+    <li>
+      <strong>1. Automatic Setup:</strong> Voxe can instantly create a fully configured helpdesk for you — inboxes, admin accounts, agents, everything.
+    </li>
+    <li>
+      <strong>2. Connect Your Own Helpdesk:</strong> If you already use Chatwoot or another provider, you can link it by entering your Base URL, Account ID, and API Token.
+    </li>
+  </ul>
+
+  <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+    Choose the option that works best for your business. Automatic setup is the fastest way to get started,
+    while manual connection gives you ability to connect your existing helpdesk environment.
+  </p>
+</div>
+
     </div>
   );
 }
