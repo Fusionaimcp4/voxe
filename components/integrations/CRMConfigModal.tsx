@@ -19,9 +19,10 @@ interface CRMConfigModalProps {
   };
   onRefresh?: () => Promise<void>; // Optional callback to refresh integrations list
   hasChatvoxeIntegration?: boolean; // Whether user already has an active CHATVOXE integration
+  autoExpandProviderSection?: boolean; // Auto-expand the "Connect Your Own Helpdesk" section
 }
 
-export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, onRefresh, hasChatvoxeIntegration = false }: CRMConfigModalProps) {
+export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, onRefresh, hasChatvoxeIntegration = false, autoExpandProviderSection = false }: CRMConfigModalProps) {
   const [selectedProvider, setSelectedProvider] = useState<CRMProvider>(
     existingIntegration?.configuration.provider || 'CHATWOOT'
   );
@@ -35,7 +36,22 @@ export function CRMConfigModal({ isOpen, onClose, onSave, existingIntegration, o
   const [error, setError] = useState<string | null>(null);
   const [provisioningError, setProvisioningError] = useState<string | null>(null);
   const [provisioningSuccess, setProvisioningSuccess] = useState<string | null>(null);
-  const [isProviderSectionExpanded, setIsProviderSectionExpanded] = useState(false);
+  const [isProviderSectionExpanded, setIsProviderSectionExpanded] = useState(autoExpandProviderSection);
+
+  // Auto-expand provider section when prop changes
+  React.useEffect(() => {
+    if (autoExpandProviderSection && isOpen) {
+      setIsProviderSectionExpanded(true);
+    }
+  }, [autoExpandProviderSection, isOpen]);
+
+  // Refresh integration data when modal opens with existingIntegration
+  React.useEffect(() => {
+    if (isOpen && existingIntegration && onRefresh) {
+      // Refresh to get latest integration data
+      onRefresh().catch(err => console.error('Failed to refresh integration:', err));
+    }
+  }, [isOpen, existingIntegration?.id]);
 
   const providerInfo = getCRMProvider(selectedProvider);
   const allProviders = getAllCRMProviders();

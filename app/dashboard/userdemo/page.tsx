@@ -3,8 +3,12 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { slugify } from "@/lib/slug";
 import { normalizeUrl } from "@/lib/url";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertCircle, X } from "lucide-react";
+import { CRMConfigModal } from "@/components/integrations/CRMConfigModal";
 
 /**
  * User‑Facing Demo Page
@@ -123,7 +127,15 @@ async function createDemo(payload: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Demo creation failed");
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const error = new Error(errorData.message || "Demo creation failed");
+    (error as any).error = errorData.error;
+    (error as any).helpdeskRequired = errorData.helpdeskRequired;
+    throw error;
+  }
+  
   return res.json();
 }
 
@@ -133,7 +145,20 @@ async function createDemo(payload: {
 
 export default function UserFacingDemoPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [step, setStep] = useState<0 | 1 | 2>(0);
+  
+  // Helpdesk status
+  const [helpdeskStatus, setHelpdeskStatus] = useState<{
+    hasHelpdesk: boolean;
+    isPaidUser: boolean;
+    requiresHelpdesk: boolean;
+  } | null>(null);
+  const [showBlockingModal, setShowBlockingModal] = useState(false);
+  const [showCRMModal, setShowCRMModal] = useState(false);
+  const [autoExpandProviderSection, setAutoExpandProviderSection] = useState(false);
+  const [isCreatingHelpdesk, setIsCreatingHelpdesk] = useState(false);
+  const [editingIntegration, setEditingIntegration] = useState<any>(null);
 
   // Step 0: business info prompt
   const [targetUrl, setTargetUrl] = useState("");
@@ -179,6 +204,46 @@ export default function UserFacingDemoPage() {
     }
   }, [session, useCustomContact]);
 
+  // Check helpdesk status on mount and when step changes
+  useEffect(() => {
+    const checkHelpdeskStatus = async () => {
+      try {
+        const response = await fetch('/api/dashboard/helpdesk-status');
+        if (response.ok) {
+          const data = await response.json();
+          setHelpdeskStatus(data);
+          
+          // Show blocking modal if paid user without helpdesk tries to proceed
+          if (data.requiresHelpdesk && step > 0) {
+            setShowBlockingModal(true);
+            setStep(0); // Reset to step 0
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check helpdesk status:', error);
+      }
+    };
+
+    if (session?.user) {
+      checkHelpdeskStatus();
+    }
+  }, [session, step]);
+
+  // Refresh helpdesk status when window regains focus (user might have set up helpdesk in another tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (session?.user) {
+        fetch('/api/dashboard/helpdesk-status')
+          .then(res => res.json())
+          .then(data => setHelpdeskStatus(data))
+          .catch(err => console.error('Failed to refresh helpdesk status:', err));
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [session]);
+
   // Handle phone number changes with validation
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const phone = e.target.value;
@@ -221,6 +286,13 @@ export default function UserFacingDemoPage() {
   async function handleCreateDemo(e: React.FormEvent) {
     e.preventDefault();
     if (!biz) return;
+    
+    // Check if paid user requires helpdesk
+    if (helpdeskStatus?.requiresHelpdesk) {
+      setShowBlockingModal(true);
+      return;
+    }
+    
     setCreating(true);
     setCreateError(null);
     try {
@@ -236,14 +308,237 @@ export default function UserFacingDemoPage() {
       setResult(out);
       setStep(2);
     } catch (err: any) {
-      setCreateError(err?.message || "We couldn't create your demo just now.");
+      // Handle helpdesk required error
+      if (err?.message?.includes('HELPDESK_REQUIRED') || err?.error === 'HELPDESK_REQUIRED') {
+        setShowBlockingModal(true);
+      } else {
+        setCreateError(err?.message || "We couldn't create your demo just now.");
+      }
     } finally {
       setCreating(false);
     }
   }
 
+  // Warning banner for free users without helpdesk
+  const showWarningBanner = helpdeskStatus && !helpdeskStatus.isPaidUser && !helpdeskStatus.hasHelpdesk;
+
   return (
     <div className="px-4 py-6 space-y-6">
+      {/* Warning Banner for Free Users */}
+      {showWarningBanner && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                Using Default Helpdesk
+              </p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                Your workspace is currently using a temporary helpdesk for demos. For testing this is fine, but for production, set up your helpdesk first.
+              </p>
+            </div>
+            <button
+              onClick={() => setHelpdeskStatus({ ...helpdeskStatus, hasHelpdesk: true })}
+              className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Blocking Modal for Paid Users */}
+      <Dialog open={showBlockingModal} onOpenChange={setShowBlockingModal}>
+        <DialogContent className="sm:max-w-[500px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              Helpdesk Setup Required
+            </DialogTitle>
+            <DialogDescription className="text-slate-600 dark:text-slate-400 pt-2">
+              Please create your helpdesk or connect your external helpdesk before creating support chats. This ensures proper inbox routing and agent assignment.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 pt-4">
+            <button
+              onClick={async () => {
+                setIsCreatingHelpdesk(true);
+                try {
+                  const response = await fetch('/api/helpdesk/create-voxe-helpdesk', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                  });
+
+                  const result = await response.json();
+
+                  if (result.status === 'success' || result.status === 'partial_success') {
+                    // Small delay to ensure backend has saved the integration
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Fetch the newly created integration
+                    const integrationsResponse = await fetch('/api/dashboard/integrations');
+                    if (integrationsResponse.ok) {
+                      const integrationsData = await integrationsResponse.json();
+                      // Find the CHATVOXE integration that was just created
+                      const chatvoxeIntegration = integrationsData.integrations.find((i: any) => 
+                        i.type === 'CRM' && 
+                        i.isActive &&
+                        (i.name === 'CHATVOXE' || (i.configuration as any)?.voxeCreated === true)
+                      );
+                      
+                      if (chatvoxeIntegration) {
+                        // Set the integration for editing - ensure configuration structure matches
+                        setEditingIntegration({
+                          id: chatvoxeIntegration.id,
+                          name: chatvoxeIntegration.name,
+                          configuration: {
+                            ...chatvoxeIntegration.configuration,
+                            provider: chatvoxeIntegration.configuration?.provider || 'CHATWOOT',
+                          },
+                        });
+                      }
+                    }
+
+                    // Refresh helpdesk status
+                    const statusResponse = await fetch('/api/dashboard/helpdesk-status');
+                    if (statusResponse.ok) {
+                      const statusData = await statusResponse.json();
+                      setHelpdeskStatus(statusData);
+                    }
+
+                    // Close blocking modal and open Edit Helpdesk Setup modal
+                    setShowBlockingModal(false);
+                    // Small delay to ensure state is updated before opening modal
+                    setTimeout(() => {
+                      setShowCRMModal(true);
+                    }, 100);
+                  } else {
+                    // If creation fails, open the CRM modal for manual setup
+                    setShowBlockingModal(false);
+                    setShowCRMModal(true);
+                  }
+                } catch (err) {
+                  console.error('Failed to create helpdesk:', err);
+                  // On error, open the CRM modal for manual setup
+                  setShowBlockingModal(false);
+                  setShowCRMModal(true);
+                } finally {
+                  setIsCreatingHelpdesk(false);
+                }
+              }}
+              disabled={isCreatingHelpdesk}
+              className="w-full sm:w-auto px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCreatingHelpdesk ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                'Create Helpdesk'
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setShowBlockingModal(false);
+                setAutoExpandProviderSection(true);
+                setShowCRMModal(true);
+              }}
+              className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
+            >
+              Connect External Helpdesk
+            </button>
+            <button
+              onClick={() => setShowBlockingModal(false)}
+              className="w-full sm:w-auto px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CRM Config Modal */}
+      <CRMConfigModal
+        isOpen={showCRMModal}
+        onClose={() => {
+          setShowCRMModal(false);
+          setAutoExpandProviderSection(false);
+          setEditingIntegration(null);
+          // Refresh helpdesk status when modal closes
+          if (session?.user) {
+            fetch('/api/dashboard/helpdesk-status')
+              .then(res => res.json())
+              .then(data => {
+                setHelpdeskStatus(data);
+                // If helpdesk is now configured, close blocking modal if it's open
+                if (data.hasHelpdesk && showBlockingModal) {
+                  setShowBlockingModal(false);
+                }
+              })
+              .catch(err => console.error('Failed to refresh helpdesk status:', err));
+          }
+        }}
+        onSave={async () => {
+          // Refresh helpdesk status after save
+          if (session?.user) {
+            const statusResponse = await fetch('/api/dashboard/helpdesk-status');
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              setHelpdeskStatus(statusData);
+              // If helpdesk is now configured, close blocking modal if it's open
+              if (statusData.hasHelpdesk && showBlockingModal) {
+                setShowBlockingModal(false);
+              }
+            }
+          }
+        }}
+        onRefresh={async () => {
+          // Refresh integrations and helpdesk status
+          if (session?.user) {
+            // Fetch updated integration
+            const integrationsResponse = await fetch('/api/dashboard/integrations');
+            if (integrationsResponse.ok) {
+              const integrationsData = await integrationsResponse.json();
+              const chatvoxeIntegration = integrationsData.integrations.find((i: any) => 
+                i.type === 'CRM' && 
+                (i.name === 'CHATVOXE' || (i.configuration as any)?.voxeCreated === true)
+              );
+              
+              if (chatvoxeIntegration) {
+                setEditingIntegration({
+                  id: chatvoxeIntegration.id,
+                  name: chatvoxeIntegration.name,
+                  configuration: chatvoxeIntegration.configuration,
+                });
+              }
+            }
+
+            // Refresh helpdesk status
+            const statusResponse = await fetch('/api/dashboard/helpdesk-status');
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              setHelpdeskStatus(statusData);
+              // If helpdesk is now configured, close blocking modal if it's open
+              if (statusData.hasHelpdesk && showBlockingModal) {
+                setShowBlockingModal(false);
+              }
+            }
+          }
+        }}
+        hasChatvoxeIntegration={!!editingIntegration}
+        existingIntegration={editingIntegration}
+        autoExpandProviderSection={autoExpandProviderSection}
+      />
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -372,7 +667,14 @@ export default function UserFacingDemoPage() {
                   <div className="pt-4 border-t border-slate-200 dark:border-slate-700 sticky bottom-0 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm">
                     <button
                       disabled={!canContinueFromInfo}
-                      onClick={() => setStep(1)}
+                      onClick={() => {
+                        // Check if paid user requires helpdesk before proceeding
+                        if (helpdeskStatus?.requiresHelpdesk) {
+                          setShowBlockingModal(true);
+                        } else {
+                          setStep(1);
+                        }
+                      }}
                       className="w-full px-6 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     >
                       Looks good — configure demo
@@ -389,6 +691,22 @@ export default function UserFacingDemoPage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <Card title="2) Configure Your Demo" subtitle="Set up your demo details and contact information.">
+                {/* Warning Banner for Free Users (inside form) */}
+                {showWarningBanner && (
+                  <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                          Using Default Helpdesk
+                        </p>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                          Your workspace is currently using a temporary helpdesk for demos. For testing this is fine, but for production, set up your helpdesk first.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <form onSubmit={handleCreateDemo} className="space-y-6">
                   {/* Demo Configuration */}
                   <div className="space-y-4">
@@ -491,12 +809,17 @@ export default function UserFacingDemoPage() {
                   </div>
 
                   <button 
-                    disabled={creating || (useCustomContact && !contactValid)} 
+                    disabled={creating || (useCustomContact && !contactValid) || (helpdeskStatus?.requiresHelpdesk)} 
                     className="w-full px-6 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                   >
                     {creating ? "Creating your demo…" : "Create My Demo"}
                   </button>
                   {createError && <p className="text-sm text-red-600 dark:text-red-400">{createError}</p>}
+                  {helpdeskStatus?.requiresHelpdesk && (
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      Please set up your helpdesk before creating support chats.
+                    </p>
+                  )}
                 </form>
               </Card>
             </div>

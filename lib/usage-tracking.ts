@@ -5,6 +5,37 @@ import { checkUsageLimits } from '@/lib/tier-access';
 import { FusionSubAccountService } from '@/lib/fusion-sub-accounts';
 import { getTierLimits } from '@/lib/features';
 
+/**
+ * Check if user has an active helpdesk integration
+ * @param userId - User ID to check
+ * @returns true if user has active CRM integration with CHATWOOT provider
+ */
+export async function hasActiveHelpdesk(userId: string): Promise<boolean> {
+  try {
+    if (!prisma) {
+      return false;
+    }
+
+    const integration = await prisma.integration.findFirst({
+      where: {
+        userId,
+        type: 'CRM',
+        isActive: true,
+      },
+    });
+
+    if (!integration) {
+      return false;
+    }
+
+    const config = integration.configuration as any;
+    return config?.provider === 'CHATWOOT';
+  } catch (error) {
+    console.error('[hasActiveHelpdesk] Error checking helpdesk:', error);
+    return false;
+  }
+}
+
 export interface UsageStats {
   demos: number;
   workflows: number;

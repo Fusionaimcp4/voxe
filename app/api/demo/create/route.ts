@@ -126,6 +126,32 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Check if paid user requires helpdesk before creating demo
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionTier: true },
+    });
+
+    const userTier = user?.subscriptionTier || 'FREE';
+    const isPaidUser = userTier !== 'FREE';
+
+    if (isPaidUser) {
+      const { hasActiveHelpdesk } = await import('@/lib/usage-tracking');
+      const hasHelpdesk = await hasActiveHelpdesk(userId);
+      
+      if (!hasHelpdesk) {
+        return NextResponse.json(
+          {
+            error: 'HELPDESK_REQUIRED',
+            message: 'Paid customers must create or connect a helpdesk before creating support chats. This ensures proper inbox routing and agent assignment.',
+            helpdeskRequired: true,
+            redirectTo: '/dashboard/integrations'
+          },
+          { status: 403 }
+        );
+      }
+    }
     
     // Validate input
     if (!payload.url) {

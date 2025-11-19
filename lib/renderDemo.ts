@@ -101,17 +101,17 @@ export function renderDemoHTML(ctx: DemoCtx): string {
     <!-- Promo strip -->
     <section style="margin-top:24px;" class="card promo" aria-label="Call to action">
       <div>
-        <h3 style="margin:0 0 8px;font-size:18px;font-weight:600;color:#f4f4f5;">Ready to deploy this on your site?</h3>
+        <h3 style="margin:0 0 8px;font-size:18px;font-weight:600;color:#f4f4f5;">Ready to get started?</h3>
         <p class="muted" style="margin:0;font-size:14px;">
-          We deploy the full stack (AI + routing + CRM) in no time. Self-hosted or managed by us.
+          Compare plans in detail. Create unlimited AI chatbots, manage knowledge bases, and automate workflows—all with complete data ownership.
         </p>
       </div>
       <div class="btn-group">
-        <a href="https://voxe.mcp4.ai/integration-process" class="btn btn-outline" target="_blank" rel="noopener noreferrer">
-          See integration steps
+        <a href="https://voxe.mcp4.ai/pricing-page" class="btn btn-solid" target="_blank" rel="noopener noreferrer">
+          Get Started
         </a>
-        <a href="https://voxe.mcp4.ai/cost-savings" class="btn btn-solid" target="_blank" rel="noopener noreferrer">
-          See cost-savings
+        <a href="https://voxe.mcp4.ai/pricing" class="btn btn-outline" target="_blank" rel="noopener noreferrer">
+          View Pricing
         </a>
       </div>
     </section>
