@@ -125,7 +125,7 @@ export function CTASection() {
           <Link href="/dashboard/userdemo">
             <Button
               variant="outline"
-              className="px-10 py-6 border-2 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg font-semibold rounded-xl"
+              className="px-10 py-6 bg-white text-black hover:bg-gray-100 hover:!text-black px-8 sm:px-10 py-5 sm:py-6 rounded-xl font-semibold text-base shadow-xl hover:shadow-2xl transition-all duration-200"
               size="lg"
             >
               Start a Pilot
