@@ -111,7 +111,7 @@ export function ComparisonPanel() {
             <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed">
               Proactively reach website visitors with product recommendations to increase engagement and conversions.
             </p>
-            <Link href="/auth/signin">
+            <Link href="/auth/signup">
               <Button size="lg" className="bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 px-8 py-6 text-lg font-semibold rounded-xl">
                 Sign up free
               </Button>
@@ -178,7 +178,7 @@ export function ComparisonPanel() {
             <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed">
               Ensure continuous customer engagement and human-like support without expanding your team.
             </p>
-            <Link href="/auth/signin">
+            <Link href="/auth/signup">
               <Button size="lg" className="bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 px-8 py-6 text-lg font-semibold rounded-xl">
                 Sign up free
               </Button>

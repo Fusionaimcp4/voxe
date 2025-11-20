@@ -456,7 +456,7 @@ export function HeroSection() {
 
       {/* Mobile-optimized buttons */}
       <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-2xl px-4 sm:px-6">
-        <Link href="/pricing-page" className="w-full sm:w-auto">
+        <Link href="/auth/signup" className="w-full sm:w-auto">
           <Button
             variant="outline"
             className="w-full sm:w-auto bg-white text-black hover:bg-gray-100 hover:!text-black px-8 sm:px-10 py-5 sm:py-6 rounded-xl font-semibold text-base shadow-xl hover:shadow-2xl transition-all min-h-[52px] sm:min-h-[56px]"

@@ -23,7 +23,7 @@ export function BentoSection() {
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
               Get your AI chatbot running instantly using our web scraping tool. Simply provide your website URL, and we'll automatically extract all relevant information, create your knowledge base, and deploy your chatbot within seconds.
             </p>
-            <a href="#" className="inline-flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
+            <a href="help/creating-your-first-demo" className="inline-flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
               Learn more
               <ChevronRight className="w-4 h-4" />
             </a>
@@ -55,7 +55,7 @@ export function BentoSection() {
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
               Build your knowledge base in seconds with simple drag-and-drop. Upload any document, and it's instantly processed with RAG (Retrieval-Augmented Generation), making every answer accurate and context-aware. Supports both your AI and human agents for seamless customer support.
             </p>
-            <a href="#" className="inline-flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
+            <a href="help/managing-knowledge-bases" className="inline-flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
               Learn more
               <ChevronRight className="w-4 h-4" />
             </a>
@@ -87,7 +87,7 @@ export function BentoSection() {
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
               When the primary AI escalates to your human team, a secondary AI assistant maintains real-time monitoring. It tracks attendance and response times, keeps customers engaged during wait periods, and automatically notifies supervisors when chats remain unattended after assignment.
             </p>
-            <a href="#" className="inline-flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
+            <a href="help/configuring-workflows" className="inline-flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
               Learn more
               <ChevronRight className="w-4 h-4" />
             </a>
@@ -121,7 +121,7 @@ export function BentoSection() {
             </p>
           </div>
           
-          <a href="#" className="flex items-center justify-center mb-8">
+          <a href="/dashboard/integrations" className="flex items-center justify-center mb-8">
             <button className="bg-slate-900 dark:bg-slate-800 text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
               Add live agents to Chatbot
             </button>
