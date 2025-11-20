@@ -38,7 +38,6 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
     const data = {
       name: formData.get("name") as string,
       email: formData.get("email") as string,
-      company: formData.get("company") as string,
       password: formData.get("password") as string,
     };
 
@@ -110,18 +109,6 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
             id="name"
             name="name"
             placeholder="John Doe"
-            required
-            disabled={isLoading}
-            className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"
-          />
-        </div>
-
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label htmlFor="company" className="text-sm sm:text-base text-zinc-200">Company Name</Label>
-          <Input
-            id="company"
-            name="company"
-            placeholder="Your Company"
             required
             disabled={isLoading}
             className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 h-11 sm:h-12 text-base"

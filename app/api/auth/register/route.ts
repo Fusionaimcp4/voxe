@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, company, password } = await request.json();
+    const { name, email, password } = await request.json();
 
     // Validate required fields
     if (!name || !email || !password) {
@@ -43,11 +43,12 @@ export async function POST(request: NextRequest) {
     freeTrialEndsAt.setDate(freeTrialEndsAt.getDate() + 14);
 
     // Create user with isVerified: false
+    // Company is optional - users can add it later in Profile Settings
     const user = await prisma.user.create({
       data: {
         name,
         email,
-        company: company || null,
+        company: null, // Company is optional, can be added later in Profile Settings
         password: hashedPassword,
         role: 'USER',
         isVerified: false, // New users are unverified by default

@@ -22,7 +22,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  DollarSign
+  DollarSign,
+  UserCircle
 } from "lucide-react";
 
 interface SidebarProps {
@@ -79,6 +80,12 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
       href: "/dashboard/billing",
       icon: DollarSign,
       description: "Plan, balance, transactions"
+    },
+    {
+      name: "Profile",
+      href: "/dashboard/profile",
+      icon: UserCircle,
+      description: "Account settings"
     }
   ];
 
