@@ -67,7 +67,7 @@ export function FooterSection() {
                 </div>
               </div>
               
-              {/* Startup Fame Badge */}
+              {/* Startup Fame Badge 
               <div className="flex justify-center lg:justify-start mt-4">
                 <a 
                   href="https://startupfa.me/s/voxe?utm_source=voxe.mcp4.ai" 
@@ -82,7 +82,7 @@ export function FooterSection() {
                     height="37" 
                   />
                 </a>
-              </div>
+              </div> */}
             </div>
           </div>
 
