@@ -46,14 +46,14 @@ export const Icons = {
   sun: SunMedium,
   moon: Moon,
   laptop: Laptop,
-  google: ({ className, ...props }: React.ComponentProps<typeof NextImage>) => (
+  google: ({ className, width = 16, height = 16, ...props }: LucideProps) => (
     <NextImage
-      {...props}
       src="/images/google-logo.aacb4c7fe7b2200fd0f19101d3e5b6b1.svg"
       alt="Google"
-      width={16}
-      height={16}
+      width={width}
+      height={height}
       className={className}
+      {...(props as any)}
     />
   ),
   gitHub: ({ ...props }: LucideProps) => (

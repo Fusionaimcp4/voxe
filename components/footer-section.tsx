@@ -66,6 +66,23 @@ export function FooterSection() {
                   No Lock-in
                 </div>
               </div>
+              
+              {/* Startup Fame Badge */}
+              <div className="flex justify-center lg:justify-start mt-4">
+                <a 
+                  href="https://startupfa.me/s/voxe?utm_source=voxe.mcp4.ai" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <img 
+                    src="https://startupfa.me/badges/featured/dark-small-rounded.webp" 
+                    alt="Voxe - Featured on Startup Fame" 
+                    width="240" 
+                    height="37" 
+                  />
+                </a>
+              </div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Check, Star, ArrowRight, ChevronDown, MessageCircle, Ticket, BookOpen, Layout } from "lucide-react"
@@ -26,6 +26,20 @@ export function StandalonePricingPage() {
   const { data: session } = useSession()
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly")
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
+
+  // Load ReferralRocket tracking script
+  useEffect(() => {
+    // Check if script is already loaded
+    if (typeof window !== 'undefined' && !document.querySelector('script[data-referralrocket]')) {
+      const script = document.createElement('script')
+      script.type = 'text/javascript'
+      script.setAttribute('campaign-id', '6eMJMYDA')
+      script.defer = true
+      script.src = 'https://app.referralrocket.io/widget/widgetIndex.js'
+      script.setAttribute('data-referralrocket', 'true')
+      document.head.appendChild(script)
+    }
+  }, [])
 
   const plans: PricingPlan[] = [
     {
@@ -789,16 +803,18 @@ export function StandalonePricingPage() {
             {/* Left Content */}
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-6">
-                Partner up with Voxe
+              Partner with Voxe & Earn
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-400 mb-8">
-                Join as a Solution Partner and set up clients' accounts in no time directly in the Partner App.
+              Join our affiliate program and earn recurring commissions by referring customers to Voxe.
               </p>
               <Link 
-                href="/contact"
+                href="https://referralrocket.io/campaign?id=6eMJMYDA"
+                target="_blank"
+
                 className="inline-flex items-center gap-2 px-6 py-3 border-2 border-slate-900 dark:border-slate-100 rounded-xl font-semibold text-slate-900 dark:text-slate-100 hover:bg-slate-900 hover:text-white dark:hover:bg-slate-100 dark:hover:text-slate-900 transition-colors"
               >
-                Go to Partner Program
+                Join Affiliate Program
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -903,7 +919,6 @@ export function StandalonePricingPage() {
         </div>
       </section>
 
-     
       <FooterSection />
     </div>
   )

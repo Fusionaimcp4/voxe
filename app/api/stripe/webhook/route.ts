@@ -151,6 +151,15 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       });
 
       console.log(`[Webhook] Subscription activated for user ${userId}`);
+      
+      // Log referral purchase for tracking (ReferralRocket widget handles client-side tracking)
+      const user = await prisma!.user.findUnique({
+        where: { id: userId },
+        select: { email: true }
+      });
+      if (user?.email) {
+        console.log(`[ReferralRocket] Purchase tracked: ${user.email}, Amount: $${((session.amount_total || 0) / 100).toFixed(2)}`);
+      }
     }
   } else if (sessionType === 'topup') {
     // Credit top-up completed

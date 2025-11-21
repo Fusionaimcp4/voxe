@@ -28,6 +28,7 @@ export const footerLinkGroups: ReadonlyArray<FooterLinkGroup> = [
     links: [
       { label: "Contact", href: "/contact" },
       { label: "About", href: "/#about" },
+      { label: "Affiliate Program", href: "/affiliate" },
     ],
   },
   {
@@ -35,6 +36,7 @@ export const footerLinkGroups: ReadonlyArray<FooterLinkGroup> = [
     links: [
       { label: "Help Center", href: "/help" },
       { label: "Blog", href: "https://mcp4.ai/blog", external: true },
+      
     ],
   },
   {

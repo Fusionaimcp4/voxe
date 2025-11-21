@@ -57,6 +57,18 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
       // Show success message immediately
       setSuccess("Registration successful! Redirecting to sign in...");
       
+      // Track referral signup (client-side)
+      if (typeof window !== 'undefined' && (window as any).ReferralRocket) {
+        try {
+          (window as any).ReferralRocket.trackSignup({
+            email: data.email,
+            name: data.name,
+          });
+        } catch (error) {
+          console.error('Failed to track referral signup:', error);
+        }
+      }
+      
       // Call onSuccess callback
       onSuccess?.();
       
