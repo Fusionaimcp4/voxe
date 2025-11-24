@@ -302,9 +302,9 @@ export default function DashboardPage() {
                 <Plus className="w-6 h-6 text-emerald-500" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Create New Demo</h3>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Create New support chat</h3>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  Generate a new AI support demo for your business
+                  Generate a new AI support chat for your business
                 </p>
               </div>
               <ChevronRight className="w-5 h-5 text-slate-400" />

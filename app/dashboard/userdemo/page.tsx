@@ -549,10 +549,10 @@ export default function UserFacingDemoPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
-              Create AI Support Demo
+              Create AI Support Chat
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
-              Generate a tailored demo for your business in minutes
+              Generate a tailored support chat for your business in minutes
             </p>
           </div>
           

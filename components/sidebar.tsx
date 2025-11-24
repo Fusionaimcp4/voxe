@@ -23,8 +23,16 @@ import {
   Menu,
   X,
   DollarSign,
-  UserCircle
+  UserCircle,
+  ChevronDown
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SidebarProps {
   isAdmin?: boolean;
@@ -74,18 +82,6 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
       href: "/dashboard/usage",
       icon: DollarSign,
       description: "API usage and analytics"
-    },
-    {
-      name: "Billing",
-      href: "/dashboard/billing",
-      icon: DollarSign,
-      description: "Plan, balance, transactions"
-    },
-    {
-      name: "Profile",
-      href: "/dashboard/profile",
-      icon: UserCircle,
-      description: "Account settings"
     }
   ];
 
@@ -212,52 +208,85 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
 
           {/* User Info & Actions */}
           <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-700">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  {session?.user?.name?.charAt(0) || "U"}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                  {session?.user?.name || "User"}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                  {session?.user?.email}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2">
-              {!isAdmin && hasAdminRole && (
-                <Link
-                  href="/admin/dashboard"
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <Shield className="w-4 h-4" />
-                  Admin
-                </Link>
-              )}
-              {isAdmin && (
-                <Link
-                  href="/dashboard"
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  User
-                </Link>
-              )}
-              <button
-                onClick={() => {
-                  // Handle sign out
-                  window.location.href = "/api/auth/signout";
-                }}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
+                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center flex-shrink-0">
+                    {session?.user?.avatarUrl ? (
+                      <Image
+                        src={session.user.avatarUrl}
+                        alt={session?.user?.name || "User"}
+                        width={32}
+                        height={32}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                        {session?.user?.name?.charAt(0) || "U"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                      {session?.user?.name || "User"}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {session?.user?.email}
+                    </p>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                className="w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
               >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
-            </div>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile" className="flex items-center gap-2 cursor-pointer">
+                    <UserCircle className="w-4 h-4" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/billing" className="flex items-center gap-2 cursor-pointer">
+                    <DollarSign className="w-4 h-4" />
+                    Billing
+                  </Link>
+                </DropdownMenuItem>
+                {!isAdmin && hasAdminRole && (
+                  <>
+                    <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/dashboard" className="flex items-center gap-2 cursor-pointer">
+                        <Shield className="w-4 h-4" />
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                        <ArrowLeft className="w-4 h-4" />
+                        User Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.location.href = "/api/auth/signout";
+                  }}
+                  className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -361,54 +390,102 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
 
             {/* User Info */}
             <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    {session?.user?.name?.charAt(0) || "U"}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                    {session?.user?.name || "User"}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {session?.user?.email}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                {!isAdmin && hasAdminRole && (
-                  <Link
-                    href="/admin/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
-                  >
-                    <Shield className="w-5 h-5" />
-                    Admin Dashboard
-                  </Link>
-                )}
-                {isAdmin && (
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                    User Dashboard
-                  </Link>
-                )}
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    window.location.href = "/api/auth/signout";
-                  }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left">
+                    <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center flex-shrink-0">
+                      {session?.user?.avatarUrl ? (
+                        <Image
+                          src={session.user.avatarUrl}
+                          alt={session?.user?.name || "User"}
+                          width={32}
+                          height={32}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          {session?.user?.name?.charAt(0) || "U"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                        {session?.user?.name || "User"}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {session?.user?.email}
+                      </p>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                 >
-                  <LogOut className="w-5 h-5" />
-                  Sign Out
-                </button>
-              </div>
+                  <DropdownMenuItem asChild>
+                    <Link 
+                      href="/dashboard/profile" 
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <UserCircle className="w-4 h-4" />
+                      Profile Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link 
+                      href="/dashboard/billing" 
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                      Billing
+                    </Link>
+                  </DropdownMenuItem>
+                  {!isAdmin && hasAdminRole && (
+                    <>
+                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+                      <DropdownMenuItem asChild>
+                        <Link 
+                          href="/admin/dashboard" 
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <Shield className="w-4 h-4" />
+                          Admin
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+                      <DropdownMenuItem asChild>
+                        <Link 
+                          href="/dashboard" 
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                          User Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.location.href = "/api/auth/signout";
+                    }}
+                    className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </motion.div>
