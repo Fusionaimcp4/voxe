@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '2FA is not enabled for this account' }, { status: 400 });
     }
 
-    // Verify the TOTP code before disabling
-    const isValid = authenticator.check(code, user.totpSecret);
+    // Verify the TOTP code before disabling with window tolerance
+    const isValid = authenticator.check(code, user.totpSecret, { window: 1 });
 
     if (isValid) {
       // Clear the TOTP secret from the user's database record

@@ -55,8 +55,14 @@ function Verify2FAForm() {
       setMessage(data.message || "2FA code verified successfully.");
       setCode("");
       // After successful 2FA verification, update the session to reflect that 2FA is no longer required
-      await update(); // This will re-fetch session and trigger JWT/Session callbacks
-      router.push(callbackUrl);
+      // The update function passes data to the JWT callback's session parameter when trigger === "update"
+      await update({ 
+        totpVerified: true 
+      }); // This will update the JWT token with totpVerified flag
+      // Small delay to ensure session is updated before redirect
+      setTimeout(() => {
+        router.push(callbackUrl);
+      }, 100);
 
     } catch (err: any) {
       setError(err.message || "An error occurred during 2FA verification.");

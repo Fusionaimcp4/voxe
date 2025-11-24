@@ -75,10 +75,18 @@ export default function ProfilePage() {
       const response = await fetch('/api/dashboard/profile/2fa');
       if (response.ok) {
         const data = await response.json();
+        console.log('2FA status loaded:', data);
         setTwoFactorStatus(data);
+      } else {
+        const error = await response.json();
+        console.error('Failed to load 2FA status:', error);
+        // Set default state if error
+        setTwoFactorStatus({ has2FA: false });
       }
     } catch (error) {
       console.error('Failed to load 2FA status:', error);
+      // Set default state if error
+      setTwoFactorStatus({ has2FA: false });
     }
   };
 
@@ -145,19 +153,71 @@ export default function ProfilePage() {
     }
   };
 
-  const handleEnable2FA = async () => {
-    if (!twoFactorStatus?.secret) {
-      // Load 2FA setup
+  const handleEnable2FA = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('handleEnable2FA called', { 
+      twoFactorStatus, 
+      show2FASetup, 
+      hasSecret: !!twoFactorStatus?.secret,
+      saving 
+    });
+    
+    // Prevent multiple clicks
+    if (saving === '2fa-setup' || saving === '2fa-enable') {
+      console.log('Already processing, ignoring click');
+      return;
+    }
+    
+    // If setup UI is not shown, show it (either load secret or use existing one)
+    if (!show2FASetup) {
+      // If we already have a secret from previous load, just show the UI
+      if (twoFactorStatus?.secret && twoFactorStatus?.qrCodeDataUrl) {
+        console.log('Secret already exists, showing setup UI');
+        setShow2FASetup(true);
+        return;
+      }
+      
+      // Otherwise, load 2FA setup
+      console.log('No secret found, loading 2FA setup...');
+      setSaving('2fa-setup');
       try {
-        const response = await fetch('/api/dashboard/profile/2fa');
+        console.log('Fetching 2FA setup from API...');
+        const response = await fetch('/api/dashboard/profile/2fa', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        console.log('2FA setup response status:', response.status, response.ok);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('2FA setup data received:', data);
           setTwoFactorStatus(data);
           setShow2FASetup(true);
+          console.log('2FA setup UI should now be visible');
+        } else {
+          const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('2FA setup API error:', error);
+          notifications.error(error.error || 'Failed to load 2FA setup');
         }
-      } catch (error) {
-        notifications.error('Failed to load 2FA setup');
+      } catch (error: any) {
+        console.error('2FA setup error:', error);
+        notifications.error(error.message || 'Failed to load 2FA setup');
+      } finally {
+        setSaving(null);
       }
+      return;
+    }
+    
+    // If we reach here, setup UI is shown and user wants to enable with code
+    if (!twoFactorStatus?.secret) {
+      notifications.error('2FA setup not complete. Please try again.');
       return;
     }
 
@@ -617,13 +677,43 @@ export default function ProfilePage() {
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                       Protect your account with two-factor authentication. You'll need an authenticator app like Google Authenticator or Authy.
                     </p>
-                    <button
-                      onClick={handleEnable2FA}
-                      className="w-full sm:w-auto px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors font-medium flex items-center justify-center gap-2"
-                    >
-                      <Shield className="w-4 h-4" />
-                      Enable 2FA
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          try {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('=== Enable 2FA button clicked ===');
+                            console.log('Current state:', { 
+                              has2FA: twoFactorStatus?.has2FA, 
+                              hasSecret: !!twoFactorStatus?.secret,
+                              saving, 
+                              show2FASetup 
+                            });
+                            await handleEnable2FA(e);
+                          } catch (error) {
+                            console.error('Error in onClick handler:', error);
+                            notifications.error((error as Error).message || 'Failed to enable 2FA');
+                          }
+                        }}
+                        disabled={saving === '2fa-setup' || saving === '2fa-enable'}
+                        className="px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 active:bg-emerald-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                        style={{ pointerEvents: 'auto', zIndex: 10 }}
+                      >
+                        {saving === '2fa-setup' ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="w-4 h-4" />
+                            Enable 2FA
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </>
                 )}
               </div>

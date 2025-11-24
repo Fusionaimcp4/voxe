@@ -48,6 +48,7 @@ declare module 'next-auth/jwt' {
     isVerified?: boolean
     avatarUrl?: string | null
     totpRequired?: boolean // Add totpRequired to JWT type
+    totpVerified?: boolean // Track if 2FA has been verified for this session
     subscriptionTier?: string // Add subscriptionTier
     subscriptionStatus?: string // Add subscriptionStatus
     freeTrialEndsAt?: string | Date | null // Add freeTrialEndsAt
@@ -276,7 +277,8 @@ export const authOptions: NextAuthOptions = {
         token.avatarUrl = dbUser.avatarUrl;
         token.name = dbUser.name;
         token.email = dbUser.email;
-        token.totpRequired = dbUser.totpSecret ? true : false;
+        // Only require 2FA if user has totpSecret AND hasn't verified it yet for this session
+        token.totpRequired = dbUser.totpSecret && !token.totpVerified ? true : false;
         token.subscriptionTier = dbUser.subscriptionTier as string;
         token.subscriptionStatus = dbUser.subscriptionStatus as string;
         token.freeTrialEndsAt = dbUser.freeTrialEndsAt; // Set freeTrialEndsAt
@@ -294,15 +296,25 @@ export const authOptions: NextAuthOptions = {
         token.freeTrialEndsAt = (user as any).freeTrialEndsAt; // Assuming it might be passed from a custom authorize
         if ('totpRequired' in user) {
           token.totpRequired = user.totpRequired; // Set totpRequired if present from authorize
+          // On initial login, totpVerified is false
+          if (user.totpRequired) {
+            token.totpVerified = false;
+          }
         }
       }
 
       // Special handling for session update event (e.g., after email verification or 2FA setup)
       // This block is now less critical for basic user data but might be used for other updates
-      if (trigger === "update" && session?.user) {
-        // The user data should already be fresh from the initial dbUser fetch, but ensure session data is aligned.
-        // If there are specific fields updated only via session.update(), handle them here.
-        // For now, we assume dbUser fetch covers most cases.
+      if (trigger === "update" && session) {
+        // Handle 2FA verification flag from session update
+        // session can be the data passed to update(), not just session.user
+        if ('totpVerified' in session) {
+          token.totpVerified = session.totpVerified as boolean;
+          // If 2FA is verified, clear totpRequired
+          if (token.totpVerified) {
+            token.totpRequired = false;
+          }
+        }
       }
 
       return token
@@ -322,6 +334,7 @@ export const authOptions: NextAuthOptions = {
         if ('totpRequired' in token) {
           session.user.totpRequired = token.totpRequired; // Add totpRequired to session
         }
+        // Note: totpVerified is not exposed to the session, it's only used internally in the JWT
       }
       return session
     },

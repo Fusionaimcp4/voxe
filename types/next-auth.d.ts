@@ -45,6 +45,7 @@ declare module 'next-auth/jwt' {
     isVerified?: boolean;
     avatarUrl?: string;
     totpRequired?: boolean;
+    totpVerified?: boolean; // Track if 2FA has been verified for this session
     subscriptionTier?: SubscriptionTier;
     freeTrialEndsAt?: string | Date | null;
   }

@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Secret and code are required' }, { status: 400 });
     }
 
-    // Verify the TOTP code
-    const isValid = authenticator.check(code, secret);
+    // Verify the TOTP code with window tolerance for clock skew
+    const isValid = authenticator.check(code, secret, { window: 1 });
 
     if (isValid) {
       // Save the secret to the user's database record

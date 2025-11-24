@@ -9,13 +9,13 @@ import qrcode from 'qrcode';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !session?.user?.email || !session?.user?.name) {
+    if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
     const userEmail = session.user.email;
-    const userName = session.user.name;
+    const userName = session.user.name || userEmail.split('@')[0]; // Use email prefix if name not available
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Verify the TOTP code
-      const isValid = authenticator.check(code, secret);
+      // Verify the TOTP code with window tolerance for clock skew
+      const isValid = authenticator.check(code, secret, { window: 1 });
 
       if (!isValid) {
         return NextResponse.json(
@@ -127,8 +127,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Verify the TOTP code before disabling
-      const isValid = authenticator.check(code, user.totpSecret);
+      // Verify the TOTP code before disabling with window tolerance
+      const isValid = authenticator.check(code, user.totpSecret, { window: 1 });
 
       if (!isValid) {
         return NextResponse.json(

@@ -29,13 +29,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '2FA is not enabled for this account' }, { status: 400 });
     }
 
-    const isValid = authenticator.check(code, user.totpSecret);
+    // Check TOTP code with window tolerance for clock skew (±1 time step = ±30 seconds)
+    const isValid = authenticator.check(code, user.totpSecret, { window: 1 });
 
     if (isValid) {
-      // Mark 2FA as successfully verified for the current session flow
-      // In a real scenario, this would transition from a pre-auth token to a full session token
-      // For now, we'll assume the session is implicitly updated by next-auth on successful authentication
-      return NextResponse.json({ success: true, message: '2FA code verified successfully' }, { status: 200 });
+      // Mark 2FA as successfully verified by updating the session
+      // This will be handled by the client calling session.update()
+      return NextResponse.json({ 
+        success: true, 
+        message: '2FA code verified successfully',
+        totpVerified: true 
+      }, { status: 200 });
     } else {
       return NextResponse.json({ success: false, error: 'Invalid 2FA code' }, { status: 400 });
     }
