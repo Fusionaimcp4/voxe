@@ -541,7 +541,18 @@ export default function IntegrationsPage() {
                   <div className="flex items-center gap-3">
                     {getTypeIcon(integration.type)}
                     <div>
-                      <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{integration.name}</h4>
+                      {integration.type === 'CRM' && integration.configuration?.baseUrl ? (
+                        <a
+                          href={integration.configuration.baseUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-lg font-semibold text-slate-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline transition-colors cursor-pointer"
+                        >
+                          {integration.name}
+                        </a>
+                      ) : (
+                        <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{integration.name}</h4>
+                      )}
                       <p className="text-sm text-slate-600 dark:text-slate-400">
                         {integration.type === 'CRM' ? 'Helpdesk Setup' : integration.type}
                         {crmProvider && ` - ${crmProvider}`}
