@@ -2,7 +2,7 @@
  * n8n API integration for workflow control
  */
 
-interface N8nWorkflowResponse {
+export interface N8nWorkflowResponse {
   id: string;
   name: string;
   active: boolean;

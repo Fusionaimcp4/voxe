@@ -50,7 +50,16 @@ export async function POST(request: NextRequest) {
     let switchedFromChatvoxe = false;
     let deactivatedIntegration = null;
     
-    if (body.type === 'CRM') {
+    if (body.type === 'CALENDAR') {
+      // Encrypt OAuth credentials for calendar integrations
+      const calendarConfig = body.configuration as any;
+      if (calendarConfig.oauthClientId && !calendarConfig.oauthClientId.includes(':')) {
+        processedConfiguration.oauthClientId = encrypt(calendarConfig.oauthClientId);
+      }
+      if (calendarConfig.oauthClientSecret && !calendarConfig.oauthClientSecret.includes(':')) {
+        processedConfiguration.oauthClientSecret = encrypt(calendarConfig.oauthClientSecret);
+      }
+    } else if (body.type === 'CRM') {
       const helpdeskConfig = body.configuration as CRMConfiguration;
       
       // Check if user is switching from CHATVOXE to their own Chatwoot instance

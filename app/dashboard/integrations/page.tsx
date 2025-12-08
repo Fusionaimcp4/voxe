@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSession } from 'next-auth/react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { SubscriptionTier } from '@/lib/generated/prisma';
 import { Plus, Link as LinkIcon, Calendar, Database, Zap, Webhook, Users, Settings, Trash2, Power, MessageCircle, Copy, Check, X, ChevronDown, Crown, Lock, Headphones } from "lucide-react";
 import { CRMConfigModal } from "@/components/integrations/CRMConfigModal";
 import { HelpdeskModal } from "@/components/integrations/HelpdeskModal";
+import { CalendarConfigModal } from "@/components/integrations/CalendarConfigModal";
 import { CRMConfiguration } from "@/lib/integrations/types";
 import { notifications } from "@/lib/notifications";
 
@@ -30,6 +32,8 @@ interface IntegrationStats {
 
 export default function IntegrationsPage() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [stats, setStats] = useState<IntegrationStats>({
     totalIntegrations: 0,
@@ -41,6 +45,7 @@ export default function IntegrationsPage() {
   const [showCRMModal, setShowCRMModal] = useState(false);
   const [showChatScriptModal, setShowChatScriptModal] = useState(false);
   const [showHelpdeskModal, setShowHelpdeskModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedIntegrationType, setSelectedIntegrationType] = useState<string | null>(null);
   const [editingIntegration, setEditingIntegration] = useState<Integration | null>(null);
   const [copied, setCopied] = useState(false);
@@ -58,6 +63,38 @@ export default function IntegrationsPage() {
     fetchAvailableChats();
     fetchTierLimits();
   }, [userTier]);
+
+  // Handle OAuth callback status messages
+  useEffect(() => {
+    const calendarStatus = searchParams.get('calendar_status');
+    const calendarError = searchParams.get('calendar_error');
+
+    if (calendarStatus === 'connected') {
+      notifications.success('Google Calendar connected successfully!');
+      // Clean up URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('calendar_status');
+      router.replace(url.pathname + url.search, { scroll: false });
+      // Refresh integrations and open calendar modal
+      fetchIntegrations().then(() => {
+        setShowCalendarModal(true);
+      });
+    } else if (calendarError) {
+      const errorMessages: Record<string, string> = {
+        'oauth_not_configured': 'Google Calendar OAuth is not configured. Please contact support.',
+        'token_exchange_failed': 'Failed to exchange authorization code. Please try again.',
+        'missing_tokens': 'Failed to receive access tokens. Please try again.',
+        'invalid_state': 'Invalid OAuth state. Please try again.',
+        'unauthorized': 'Unauthorized. Please sign in again.',
+        'api_not_enabled': 'Google Calendar API is not enabled. Please enable it in Google Cloud Console: https://console.cloud.google.com/apis/api/calendar-json.googleapis.com/overview',
+      };
+      notifications.error(errorMessages[calendarError] || `Calendar connection failed: ${calendarError}`);
+      // Clean up URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('calendar_error');
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const fetchTierLimits = async () => {
     try {
@@ -148,6 +185,14 @@ export default function IntegrationsPage() {
       setShowChatScriptModal(true);
     } else if (type === 'HELPDESK') {
       setShowHelpdeskModal(true);
+    } else if (type === 'CALENDAR') {
+      // Check if user is paid before allowing access
+      if (!isPaidUser) {
+        // Redirect to pricing page instead of showing modal
+        window.location.href = '/pricing';
+        return;
+      }
+      setShowCalendarModal(true);
     } else {
       // For other types, show a "coming soon" message
       notifications.info(`${type} integration coming soon!`);
@@ -158,6 +203,8 @@ export default function IntegrationsPage() {
     setEditingIntegration(integration);
     if (integration.type === 'CRM') {
       setShowCRMModal(true);
+    } else if (integration.type === 'CALENDAR') {
+      setShowCalendarModal(true);
     } else {
       notifications.info(`Editing ${integration.type} integration coming soon!`);
     }
@@ -464,7 +511,7 @@ export default function IntegrationsPage() {
             { type: 'CRM', name: 'Helpdesk Setup', description: 'Connect Chatwoot, Salesforce, HubSpot, or custom helpdesk systems', available: true, tier: 'FREE' },
             { type: 'CHAT_WIDGET', name: 'Chat Widget Script', description: 'Get the embeddable chat script for your website', available: isPaidUser, tier: 'PRO', requiresUpgrade: !isPaidUser },
             { type: 'HELPDESK', name: 'Helpdesk Agent Setup', description: 'Create and manage Chatwoot helpdesk agents and assignments', available: true, tier: 'FREE' },
-            { type: 'DATABASE', name: 'Database Integration', description: 'Connect to PostgreSQL, MySQL, MongoDB, or other databases', available: false, tier: 'PRO_PLUS' },
+            { type: 'CALENDAR', name: 'Calendar Integration', description: 'Connect to Google Calendar, Microsoft Outlook, or other calendars', available: isPaidUser, tier: 'PRO', requiresUpgrade: !isPaidUser  },
             { type: 'API', name: 'API Integration', description: 'Connect to REST APIs, GraphQL endpoints, or custom services', available: false, tier: 'PRO_PLUS' },
             { type: 'WEBHOOK', name: 'Webhook Integration', description: 'Set up custom webhooks for real-time notifications', available: false, tier: 'PRO_PLUS' },
           ].map((integration) => (
@@ -551,7 +598,7 @@ export default function IntegrationsPage() {
                           {integration.name}
                         </a>
                       ) : (
-                        <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{integration.name}</h4>
+                      <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{integration.name}</h4>
                       )}
                       <p className="text-sm text-slate-600 dark:text-slate-400">
                         {integration.type === 'CRM' ? 'Helpdesk Setup' : integration.type}
@@ -819,6 +866,21 @@ export default function IntegrationsPage() {
           (i.name === 'CHATVOXE' || (i.configuration as any)?.voxeCreated === true)
         )}
         existingIntegration={editingIntegration ? {
+          id: editingIntegration.id,
+          name: editingIntegration.name,
+          configuration: editingIntegration.configuration,
+        } : undefined}
+      />
+
+      {/* Calendar Modal */}
+      <CalendarConfigModal
+        isOpen={showCalendarModal}
+        onClose={() => {
+          setShowCalendarModal(false);
+          setEditingIntegration(null);
+        }}
+        onRefresh={fetchIntegrations}
+        existingIntegration={editingIntegration && editingIntegration.type === 'CALENDAR' ? {
           id: editingIntegration.id,
           name: editingIntegration.name,
           configuration: editingIntegration.configuration,

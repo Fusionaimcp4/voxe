@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-
+    
     // Check if paid user requires helpdesk before creating demo
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -410,7 +410,9 @@ export async function POST(request: NextRequest) {
                   id: team.id,
                   name: team.name
                 }));
+                if (teams) {
                 console.log(`[demo/create] Found ${teams.length} teams for escalation:`, teams.map(t => `${t.name} (ID: ${t.id})`).join(', '));
+                }
               } else {
                 console.log(`[demo/create] No teams found in integration config, skipping teams in payload`);
               }

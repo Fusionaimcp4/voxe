@@ -337,6 +337,18 @@ export async function PUT(
       },
     });
 
+    // If calendar integration status changed, toggle calendar nodes in n8n workflows
+    if (existing.type === 'CALENDAR' && body.isActive !== undefined && body.isActive !== existing.isActive) {
+      try {
+        const { toggleN8nCalendarNodes } = await import('@/lib/n8n-api-calendar');
+        await toggleN8nCalendarNodes(userId, !body.isActive); // !body.isActive because disabled=true means nodes are disabled
+        console.log(`✅ ${body.isActive ? 'Enabled' : 'Disabled'} calendar nodes in n8n workflows`);
+      } catch (n8nError) {
+        console.error('⚠️ Failed to toggle calendar nodes in n8n workflows (non-critical):', n8nError);
+        // Don't fail the integration update if n8n update fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       integration: {

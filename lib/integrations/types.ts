@@ -116,6 +116,69 @@ export type CRMConfiguration =
   | ZendeskConfiguration
   | CustomCRMConfiguration;
 
+// Calendar Provider types
+export type CalendarProvider = 'GOOGLE_CALENDAR' | 'MICROSOFT_OUTLOOK' | 'CUSTOM';
+
+// Base calendar configuration interface
+export interface BaseCalendarConfiguration {
+  provider: CalendarProvider;
+  connectionStatus?: {
+    isConnected: boolean;
+    lastChecked?: string;
+    errorMessage?: string;
+  };
+}
+
+// Calendar scheduling settings
+export interface CalendarSchedulingSettings {
+  timezone?: string;
+  daysAhead?: number;
+  slotDurationMinutes?: number;
+  slotInterval?: number;
+  maxSlots?: number;
+  skipPastTimeToday?: boolean;
+  businessHours?: {
+    mon?: [string, string];  // [start, end] in "HH:MM" format
+    tue?: [string, string];
+    wed?: [string, string];
+    thu?: [string, string];
+    fri?: [string, string];
+    sat?: [string, string];
+    sun?: [string, string];
+  };
+  closedDays?: string[];  // e.g., ["sat", "sun"]
+  holidayDates?: string[];  // ISO date strings
+  bufferMinutesBetweenMeetings?: number;
+  maxBookingsPerDay?: number;
+  maxBookingsPerWeek?: number;
+}
+
+// Google Calendar configuration
+export interface CalendarConfigurationGoogle extends BaseCalendarConfiguration {
+  provider: 'GOOGLE_CALENDAR';
+  accountEmail?: string;
+  calendarId?: string;
+  timezone?: string;
+  enabledForChatScheduling?: boolean;
+  // Scheduling settings for "Get available time slots"
+  schedulingSettings?: CalendarSchedulingSettings;
+  // OAuth credentials (encrypted, user-provided or from env)
+  oauthClientId?: string;      // encrypted AES-256-GCM (if user-provided)
+  oauthClientSecret?: string;  // encrypted AES-256-GCM (if user-provided)
+  tokens?: {
+    accessToken: string;    // encrypted AES-256-GCM
+    refreshToken: string;   // encrypted AES-256-GCM
+    expiryDate: number;     // timestamp (ms)
+  };
+  // Note: We don't store n8n credentials for calendar
+  // n8n workflows should call Voxe's internal APIs:
+  // - POST /api/internal/calendar/get-slots
+  // - POST /api/internal/calendar/book-event
+}
+
+// Union type for all calendar configurations
+export type CalendarConfiguration = CalendarConfigurationGoogle;
+
 // Integration model (matches Prisma schema)
 export interface Integration {
   id: string;

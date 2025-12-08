@@ -166,25 +166,41 @@ if (parsed.assign) {
   parsed.account_id = accountId;
   parsed.conversation_id = conversationId;
 
-  return [
-    {
-      json: {
-        mode: "reply",
-        output: parsed.output,
-        account_id: accountId,
-        conversation_id: conversationId,
-        team_id: parsed.team_id
+  // Only include assignment if team_id is valid (not null)
+  if (parsed.team_id !== null) {
+    return [
+      {
+        json: {
+          mode: "reply",
+          output: parsed.output,
+          account_id: accountId,
+          conversation_id: conversationId,
+          team_id: parsed.team_id
+        }
+      },
+      {
+        json: {
+          mode: "assign",
+          account_id: accountId,
+          conversation_id: conversationId,
+          team_id: parsed.team_id
+        }
       }
-    },
-    {
-      json: {
-        mode: "assign",
-        account_id: accountId,
-        conversation_id: conversationId,
-        team_id: parsed.team_id
+    ];
+  } else {
+    // Team not found - just reply without assignment
+    console.warn(\`Team "\${parsed.assign}" not found in team map. Available teams: \${Object.keys(teamMap).join(', ')}\`);
+    return [
+      {
+        json: {
+          mode: "reply",
+          output: parsed.output,
+          account_id: accountId,
+          conversation_id: conversationId
+        }
       }
-    }
-  ];
+    ];
+  }
 }
 
 // Normal case
