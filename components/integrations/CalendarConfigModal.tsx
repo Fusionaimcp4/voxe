@@ -606,10 +606,10 @@ export function CalendarConfigModal({ isOpen, onClose, onRefresh, existingIntegr
 
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      <strong>Redirect URI (for local testing):</strong>
+                      <strong>Redirect URI :</strong>
                     </p>
                     <p className="text-xs text-blue-700 dark:text-blue-300 font-mono bg-white dark:bg-slate-800 p-2 rounded mt-1 break-all">
-                      http://localhost:3000/api/dashboard/integrations/calendar/google/callback
+                    https://voxe.mcp4.ai/api/dashboard/integrations/calendar/google/callback
                     </p>
                     <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
                       ⚠️ <strong>Important:</strong> Copy this exact URI and add it to your Google Cloud Console OAuth credentials under "Authorized redirect URIs".

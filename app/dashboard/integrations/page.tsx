@@ -512,8 +512,8 @@ function IntegrationsPageContent() {
             { type: 'CHAT_WIDGET', name: 'Chat Widget Script', description: 'Get the embeddable chat script for your website', available: isPaidUser, tier: 'PRO', requiresUpgrade: !isPaidUser },
             { type: 'HELPDESK', name: 'Helpdesk Agent Setup', description: 'Create and manage Chatwoot helpdesk agents and assignments', available: true, tier: 'FREE' },
             { type: 'CALENDAR', name: 'Calendar Integration', description: 'Connect to Google Calendar, Microsoft Outlook, or other calendars', available: isPaidUser, tier: 'PRO', requiresUpgrade: !isPaidUser  },
-            { type: 'API', name: 'API Integration', description: 'Connect to REST APIs, GraphQL endpoints, or custom services', available: false, tier: 'PRO_PLUS' },
-            { type: 'WEBHOOK', name: 'Webhook Integration', description: 'Set up custom webhooks for real-time notifications', available: false, tier: 'PRO_PLUS' },
+            { type: 'API', name: 'API Integration', description: 'Connect your AI to real-time business data', available: false, tier: 'PRO_PLUS' },
+            { type: 'WEBHOOK', name: 'Webhook Integration', description: 'Send Voxe events to your external tools', available: false, tier: 'PRO_PLUS' },
           ].map((integration) => (
             <div
               key={integration.type}
