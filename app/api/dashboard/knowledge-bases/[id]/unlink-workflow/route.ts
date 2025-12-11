@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getN8nWorkflow } from '@/lib/n8n-api';
 
 export const runtime = 'nodejs';
 
@@ -65,6 +66,83 @@ export async function DELETE(
     await prisma.workflowKnowledgeBase.delete({
       where: { id: link.id },
     });
+
+    // Check if this was the last KB linked to the workflow
+    const remainingLinks = await prisma.workflowKnowledgeBase.findMany({
+      where: {
+        workflowId,
+      },
+    });
+
+    // If no KBs are linked anymore, disable RAG node in n8n workflow
+    if (remainingLinks.length === 0) {
+      const workflow = await prisma.workflow.findUnique({
+        where: { id: workflowId },
+        select: { n8nWorkflowId: true },
+      });
+
+      if (workflow?.n8nWorkflowId) {
+        try {
+          const n8nWorkflow = await getN8nWorkflow(workflow.n8nWorkflowId);
+          const { baseUrl: n8nBaseUrl, apiKey: n8nApiKey } = (() => {
+            const baseUrl = process.env.N8N_BASE_URL || 'http://localhost:5678';
+            const apiKey = process.env.N8N_API_KEY || '';
+            return { baseUrl, apiKey };
+          })();
+
+          // Find and disable RAG node
+          const updatedNodes = n8nWorkflow.nodes.map((node: any) => {
+            const isRAGNode = 
+              (node.name === 'Retrieve Knowledge Base Context' || 
+               node.name.includes('Knowledge Base') ||
+               node.name.includes('RAG')) && 
+              (node.type === 'n8n-nodes-base.httpRequestTool' ||
+               node.type === 'n8n-nodes-base.httpRequest');
+
+            if (isRAGNode && !node.disabled) {
+              console.log(`  Disabling RAG node: "${node.name}" (no KBs linked)`);
+              return {
+                ...node,
+                disabled: true,
+              };
+            }
+
+            return node;
+          });
+
+          // Check if any nodes were updated
+          const hasChanges = updatedNodes.some((node: any, index: number) => 
+            node.disabled !== n8nWorkflow.nodes[index]?.disabled
+          );
+
+          if (hasChanges) {
+            const response = await fetch(`${n8nBaseUrl}/api/v1/workflows/${workflow.n8nWorkflowId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-N8N-API-KEY': n8nApiKey,
+              },
+              body: JSON.stringify({
+                name: n8nWorkflow.name,
+                nodes: updatedNodes,
+                connections: n8nWorkflow.connections,
+                settings: n8nWorkflow.settings || {},
+                staticData: n8nWorkflow.staticData || {}
+              }),
+            });
+
+            if (response.ok) {
+              console.log(`✅ RAG node disabled in workflow ${workflow.n8nWorkflowId} (no KBs linked)`);
+            } else {
+              console.warn(`⚠️ Failed to disable RAG node (non-critical)`);
+            }
+          }
+        } catch (disableError) {
+          console.warn('⚠️ Failed to disable RAG node (non-critical):', disableError);
+          // Don't fail the entire operation if node disable fails
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

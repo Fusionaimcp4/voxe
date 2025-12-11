@@ -6,7 +6,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { updateN8nWorkflowRAGSettings } from '@/lib/n8n-api-rag';
+import { updateN8nWorkflowRAGSettings, toggleN8nRAGNodes } from '@/lib/n8n-api-rag';
+import { getN8nWorkflow } from '@/lib/n8n-api';
 
 export const runtime = 'nodejs';
 
@@ -100,7 +101,7 @@ export async function POST(
       },
     });
 
-    // Update n8n workflow RAG settings if n8nWorkflowId exists
+    // Update n8n workflow RAG settings and enable RAG node if n8nWorkflowId exists
     if (workflow.n8nWorkflowId) {
       try {
         console.log(`🔄 Updating n8n workflow ${workflow.n8nWorkflowId} RAG settings...`);
@@ -110,6 +111,67 @@ export async function POST(
           // Keep existing URL or use default
         });
         console.log(`✅ n8n workflow RAG settings updated successfully`);
+
+        // Enable RAG node in the workflow (it starts disabled after duplication)
+        try {
+          const n8nWorkflow = await getN8nWorkflow(workflow.n8nWorkflowId);
+          const { baseUrl: n8nBaseUrl, apiKey: n8nApiKey } = (() => {
+            const baseUrl = process.env.N8N_BASE_URL || 'http://localhost:5678';
+            const apiKey = process.env.N8N_API_KEY || '';
+            return { baseUrl, apiKey };
+          })();
+
+          // Find and enable RAG node
+          const updatedNodes = n8nWorkflow.nodes.map((node: any) => {
+            const isRAGNode = 
+              (node.name === 'Retrieve Knowledge Base Context' || 
+               node.name.includes('Knowledge Base') ||
+               node.name.includes('RAG')) && 
+              (node.type === 'n8n-nodes-base.httpRequestTool' ||
+               node.type === 'n8n-nodes-base.httpRequest');
+
+            if (isRAGNode && node.disabled) {
+              console.log(`  Enabling RAG node: "${node.name}"`);
+              return {
+                ...node,
+                disabled: false,
+              };
+            }
+
+            return node;
+          });
+
+          // Check if any nodes were updated
+          const hasChanges = updatedNodes.some((node: any, index: number) => 
+            node.disabled !== n8nWorkflow.nodes[index]?.disabled
+          );
+
+          if (hasChanges) {
+            const response = await fetch(`${n8nBaseUrl}/api/v1/workflows/${workflow.n8nWorkflowId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-N8N-API-KEY': n8nApiKey,
+              },
+              body: JSON.stringify({
+                name: n8nWorkflow.name,
+                nodes: updatedNodes,
+                connections: n8nWorkflow.connections,
+                settings: n8nWorkflow.settings || {},
+                staticData: n8nWorkflow.staticData || {}
+              }),
+            });
+
+            if (response.ok) {
+              console.log(`✅ RAG node enabled in workflow ${workflow.n8nWorkflowId}`);
+            } else {
+              console.warn(`⚠️ Failed to enable RAG node (non-critical)`);
+            }
+          }
+        } catch (enableError) {
+          console.warn('⚠️ Failed to enable RAG node (non-critical):', enableError);
+          // Don't fail the entire operation if node enable fails
+        }
       } catch (n8nError) {
         // Log but don't fail the operation if n8n update fails
         console.error('[KB Link] n8n update failed (non-critical):', n8nError);

@@ -2,6 +2,7 @@
  * Update RAG (Retrieve Knowledge Base Context) node settings in n8n workflow
  */
 import { getN8nWorkflow } from './n8n-api';
+import { prisma } from '@/lib/prisma';
 
 interface N8nWorkflowResponse {
   id: string;
@@ -179,5 +180,100 @@ export async function updateN8nWorkflowRAGSettings(
       staticData: workflow.staticData || {}
     })
   });
+}
+
+/**
+ * Toggle disabled state of RAG (Knowledge Base) nodes in n8n workflows
+ * @param userId - User ID to find all workflows
+ * @param disabled - true to disable nodes, false to enable
+ */
+export async function toggleN8nRAGNodes(userId: string, disabled: boolean): Promise<void> {
+  if (!prisma) {
+    throw new Error('Prisma client not initialized');
+  }
+
+  // Get all workflows for this user
+  const workflows = await prisma.workflow.findMany({
+    where: {
+      userId: userId,
+      n8nWorkflowId: { not: null },
+    },
+    select: {
+      n8nWorkflowId: true,
+    },
+  });
+
+  console.log(`🔄 ${disabled ? 'Disabling' : 'Enabling'} RAG nodes in ${workflows.length} workflows...`);
+
+  const { baseUrl: n8nBaseUrl, apiKey: n8nApiKey } = (() => {
+    const baseUrl = process.env.N8N_BASE_URL || 'http://localhost:5678';
+    const apiKey = process.env.N8N_API_KEY || '';
+    return { baseUrl, apiKey };
+  })();
+
+  for (const workflow of workflows) {
+    if (!workflow.n8nWorkflowId) continue;
+
+    try {
+      // Get current workflow
+      const n8nWorkflow = await getN8nWorkflow(workflow.n8nWorkflowId);
+
+      // Find and update RAG nodes
+      const updatedNodes = n8nWorkflow.nodes.map((node: any) => {
+        const isRAGNode = 
+          (node.name === 'Retrieve Knowledge Base Context' || 
+           node.name.includes('Knowledge Base') ||
+           node.name.includes('RAG')) && 
+          (node.type === 'n8n-nodes-base.httpRequestTool' ||
+           node.type === 'n8n-nodes-base.httpRequest');
+
+        if (isRAGNode) {
+          console.log(`  ${disabled ? 'Disabling' : 'Enabling'} node: "${node.name}"`);
+          return {
+            ...node,
+            disabled: disabled,
+          };
+        }
+
+        return node;
+      });
+
+      // Check if any nodes were updated
+      const hasChanges = updatedNodes.some((node: any, index: number) => 
+        node.disabled !== n8nWorkflow.nodes[index]?.disabled
+      );
+
+      if (hasChanges) {
+        // Update workflow in n8n
+        const response = await fetch(`${n8nBaseUrl}/api/v1/workflows/${workflow.n8nWorkflowId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-N8N-API-KEY': n8nApiKey,
+          },
+          body: JSON.stringify({
+            name: n8nWorkflow.name,
+            nodes: updatedNodes,
+            connections: n8nWorkflow.connections,
+            settings: n8nWorkflow.settings || {},
+            staticData: n8nWorkflow.staticData || {}
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ Failed to update workflow ${workflow.n8nWorkflowId}: ${errorText}`);
+          // Continue with other workflows even if one fails
+        } else {
+          console.log(`✅ Updated workflow ${workflow.n8nWorkflowId}`);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error updating workflow ${workflow.n8nWorkflowId}:`, error);
+      // Continue with other workflows even if one fails
+    }
+  }
+
+  console.log(`✅ ${disabled ? 'Disabled' : 'Enabled'} RAG nodes in ${workflows.length} workflows`);
 }
 
