@@ -7,40 +7,42 @@ import path from 'path';
  * Falls back to file if no published template exists in database
  */
 export async function getPublishedSystemMessageTemplate(): Promise<string> {
+  // Always use file template for now to ensure section markers are present
+  // TODO: When database templates are updated with markers, we can use them
+  const templatePath = path.join(process.cwd(), 'data/templates/n8n_System_Message.md');
+  const fileContent = await readTextFileIfExists(templatePath);
+  
+  if (!fileContent) {
+    throw new Error(`System message template not found at: ${templatePath}`);
+  }
+
+  // Verify file template has section markers
+  const hasMarkers = /\[(PROTECTED|EDITABLE)_START:/.test(fileContent);
+  if (!hasMarkers) {
+    throw new Error(`Template file does not contain section markers. Please check: ${templatePath}`);
+  }
+
+  console.log('📄 Using template from file:', templatePath);
+  return fileContent;
+  
+  /* 
+  // Future: Use database template if it has markers
   try {
-    // Try to get published template from database
     const publishedVersion = await prisma.systemMessageVersion.findFirst({
       where: { isPublished: true },
       orderBy: { publishedAt: 'desc' },
-      include: {
-        template: true
-      }
+      include: { template: true }
     });
 
     if (publishedVersion) {
-      return publishedVersion.content;
+      const hasMarkers = /\[(PROTECTED|EDITABLE)_START:/.test(publishedVersion.content);
+      if (hasMarkers) {
+        console.log('📄 Using published template from database');
+        return publishedVersion.content;
+      }
     }
-
-    // Fallback to file if no published version exists
-    const templatePath = path.join(process.cwd(), 'data/templates/n8n_System_Message.md');
-    const fileContent = await readTextFileIfExists(templatePath);
-    
-    if (!fileContent) {
-      throw new Error('No system message template found in database or file');
-    }
-
-    return fileContent;
   } catch (error) {
-    console.error('Failed to get published system message template:', error);
-    
-    // Final fallback to file
-    const templatePath = path.join(process.cwd(), 'data/templates/n8n_System_Message.md');
-    const fileContent = await readTextFileIfExists(templatePath);
-    
-    if (!fileContent) {
-      throw new Error('System message template not found');
-    }
-
-    return fileContent;
+    console.warn('Could not check database template, using file:', error);
   }
+  */
 }

@@ -7,6 +7,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getN8nWorkflow } from '@/lib/n8n-api';
+import { regenerateSystemMessageForWorkflow } from '@/lib/system-message-regenerate';
 
 export const runtime = 'nodejs';
 
@@ -140,6 +141,20 @@ export async function DELETE(
         } catch (disableError) {
           console.warn('⚠️ Failed to disable RAG node (non-critical):', disableError);
           // Don't fail the entire operation if node disable fails
+        }
+      }
+
+      // Regenerate system message to remove KB section if it was the last KB
+      // This will update both the database/file AND n8n workflow
+      if (remainingLinks.length === 0) {
+        try {
+          console.log(`🔄 [KB Unlink] Regenerating system message for workflow ${workflowId} (last KB unlinked)...`);
+          await regenerateSystemMessageForWorkflow(workflowId);
+          console.log(`✅ [KB Unlink] System message regenerated without KB section and n8n workflow updated`);
+        } catch (regenError) {
+          console.error('❌ [KB Unlink] Failed to regenerate system message:', regenError);
+          console.error('   Error details:', regenError instanceof Error ? regenError.stack : String(regenError));
+          // Don't fail the operation if regeneration fails, but log the error clearly
         }
       }
     }

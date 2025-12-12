@@ -8,6 +8,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { updateN8nWorkflowRAGSettings, toggleN8nRAGNodes } from '@/lib/n8n-api-rag';
 import { getN8nWorkflow } from '@/lib/n8n-api';
+import { regenerateSystemMessageForWorkflow } from '@/lib/system-message-regenerate';
 
 export const runtime = 'nodejs';
 
@@ -176,6 +177,18 @@ export async function POST(
         // Log but don't fail the operation if n8n update fails
         console.error('[KB Link] n8n update failed (non-critical):', n8nError);
         console.log('💡 Link created successfully, but n8n workflow needs manual update');
+      }
+
+      // Regenerate system message to include KB section
+      // This will update both the database/file AND n8n workflow
+      try {
+        console.log(`🔄 [KB Link] Regenerating system message for workflow ${workflowId} (KB linked)...`);
+        await regenerateSystemMessageForWorkflow(workflowId);
+        console.log(`✅ [KB Link] System message regenerated with KB section and n8n workflow updated`);
+      } catch (regenError) {
+        console.error('❌ [KB Link] Failed to regenerate system message:', regenError);
+        console.error('   Error details:', regenError instanceof Error ? regenError.stack : String(regenError));
+        // Don't fail the operation if regeneration fails, but log the error clearly
       }
     } else {
       console.log('⚠️  No n8nWorkflowId found, skipping n8n update');

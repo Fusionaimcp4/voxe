@@ -147,15 +147,16 @@ model ApiKey {
 }
 
 model SystemMessage {
-  id        String   @id @default(cuid())
-  demoId    String   @unique
-  content   String
-  sections  Json?
-  version   Int      @default(1)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  demo      Demo     @relation(fields: [demoId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  demoId          String   @unique
+  content         String
+  sections        Json?
+  editableContent Json?    // Only editable sections (business_knowledge, voice_pov, etc.)
+  version         Int      @default(1)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  demo            Demo     @relation(fields: [demoId], references: [id], onDelete: Cascade)
 
   @@map("system_messages")
 }

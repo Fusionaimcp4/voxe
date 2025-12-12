@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { X, MessageSquare, Database, Edit3, Save, RotateCcw } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { notifications } from "@/lib/notifications";
+import SystemMessageEditor from "@/components/system-messages/SystemMessageEditor";
 
 interface SystemMessage {
   id: string;
@@ -23,10 +24,8 @@ interface SystemMessage {
 export default function SystemMessagesPage() {
   const [messages, setMessages] = useState<SystemMessage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMessage, setSelectedMessage] = useState<SystemMessage | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedBusinessName, setSelectedBusinessName] = useState<string>("");
 
   useEffect(() => {
     fetchSystemMessages();
@@ -38,76 +37,32 @@ export default function SystemMessagesPage() {
       const data = await response.json();
       
       if (response.ok) {
-        setMessages(data.messages);
+        setMessages(data.messages || []);
+        if (data.messages && data.messages.length === 0) {
+          console.log('No system messages found. This might mean no demos have been created yet.');
+        }
+      } else {
+        console.error('Failed to fetch system messages:', data.error);
+        notifications.error(data.error || 'Failed to load system messages');
       }
     } catch (error) {
       console.error('Failed to fetch system messages:', error);
+      notifications.error('Failed to load system messages');
     } finally {
       setLoading(false);
     }
   };
 
   const handleViewMessage = (message: SystemMessage) => {
-    setSelectedMessage(message);
-    setEditContent(message.content);
-    setIsEditing(false);
+    setSelectedMessageId(message.id);
+    setSelectedBusinessName(message.demo.businessName);
   };
 
-  const handleCloseModal = () => {
-    setSelectedMessage(null);
-    setIsEditing(false);
-    setEditContent('');
-  };
-
-  const handleEditMessage = () => {
-    setIsEditing(true);
-  };
-
-  const handleSaveMessage = async () => {
-    if (!selectedMessage) return;
-    
-    setSaving(true);
-    try {
-      const response = await fetch(`/api/dashboard/system-messages/${selectedMessage.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messageId: selectedMessage.id,
-          content: editContent
-        })
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Update the message in the local state
-        setMessages(prev => prev.map(msg => 
-          msg.id === selectedMessage.id 
-            ? { ...msg, content: editContent, version: msg.version + 1, updatedAt: new Date().toISOString() }
-            : msg
-        ));
-        
-        // Update the selected message
-        setSelectedMessage(prev => prev ? { ...prev, content: editContent, version: prev.version + 1, updatedAt: new Date().toISOString() } : null);
-        
-        setIsEditing(false);
-        notifications.success('System message updated successfully!');
-      } else {
-        notifications.error(`Failed to update: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Failed to save message:', error);
-      notifications.error('Failed to save changes');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditContent(selectedMessage?.content || '');
+  const handleCloseEditor = () => {
+    setSelectedMessageId(null);
+    setSelectedBusinessName("");
+    // Refresh messages after closing editor to show any updates
+    fetchSystemMessages();
   };
 
   if (loading) {
@@ -224,79 +179,13 @@ export default function SystemMessagesPage() {
         )}
       </motion.div>
 
-      {/* Modal for viewing/editing message content */}
-      {selectedMessage && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{selectedMessage.demo.businessName}</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Version {selectedMessage.version}</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                {!isEditing ? (
-                  <button
-                    onClick={handleEditMessage}
-                    className="w-full sm:w-auto px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                    Edit Message
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={handleSaveMessage}
-                      disabled={saving}
-                      className="w-full sm:w-auto px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium"
-                    >
-                      {saving ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="w-full sm:w-auto px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Cancel
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={handleCloseModal}
-                  className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4">
-              {isEditing ? (
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full h-[70vh] min-h-[500px] bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-4 rounded-lg border border-slate-200 dark:border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none resize-none font-mono text-sm leading-relaxed"
-                  placeholder="Enter system message content..."
-                />
-              ) : (
-                <div className="w-full h-[70vh] min-h-[500px] overflow-y-auto">
-                  <pre className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed">
-                    {selectedMessage.content}
-                  </pre>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* System Message Editor Modal */}
+      {selectedMessageId && (
+        <SystemMessageEditor
+          messageId={selectedMessageId}
+          businessName={selectedBusinessName}
+          onClose={handleCloseEditor}
+        />
       )}
     </div>
   );

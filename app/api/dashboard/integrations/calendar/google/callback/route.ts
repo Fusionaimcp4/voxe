@@ -258,6 +258,19 @@ export async function GET(request: NextRequest) {
       // Don't fail the entire OAuth flow if n8n update fails
     }
 
+    // Regenerate system messages to include Calendar section
+    // This will update both the database/file AND n8n workflows
+    try {
+      console.log('🔄 [Calendar OAuth] Regenerating system messages for all user workflows...');
+      const { regenerateSystemMessagesForUser } = await import('@/lib/system-message-regenerate');
+      await regenerateSystemMessagesForUser(userId);
+      console.log('✅ [Calendar OAuth] Regenerated system messages with Calendar section and updated n8n workflows');
+    } catch (regenError) {
+      console.error('❌ [Calendar OAuth] Failed to regenerate system messages:', regenError);
+      console.error('   Error details:', regenError instanceof Error ? regenError.stack : String(regenError));
+      // Don't fail the OAuth flow if regeneration fails, but log the error clearly
+    }
+
     // Redirect back to integrations page with success
     return NextResponse.redirect(
       `${localBaseUrl}/dashboard/integrations?calendar_status=connected`

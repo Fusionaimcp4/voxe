@@ -8,6 +8,8 @@ import { renderDemoHTML } from '@/lib/renderDemo';
 import { slugify } from '@/lib/slug';
 import { writeTextFile, readTextFileIfExists, atomicJSONUpdate } from '@/lib/fsutils';
 import { getPublishedSystemMessageTemplate } from '@/lib/system-message-template';
+import { generateDynamicSystemMessage, type EditableContent } from '@/lib/system-message-sections';
+import { detectWorkflowFeatures } from '@/lib/system-message-features';
 import { duplicateWorkflowViaWebhook } from '@/lib/n8n-webhook';
 import { createAgentBot, assignBotToInbox } from '@/lib/chatwoot_admin';
 import { n8nCredentialService } from '@/lib/n8n-credentials';
@@ -209,6 +211,9 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    // Store KB markdown for editable content
+    let kbMarkdown = '';
+    
     if (!reusingPreview) {
       // Generate new KB (original flow)
       console.log(`Generating new KB for ${businessName}`);
@@ -217,31 +222,27 @@ export async function POST(request: NextRequest) {
       const { cleanedText } = await fetchAndClean(payload.url);
 
       // Step 2: Generate knowledge base
-      const kbMarkdown = await generateKBFromWebsite(cleanedText, payload.url);
+      kbMarkdown = await generateKBFromWebsite(cleanedText, payload.url);
 
-      // Step 3: Load skeleton template from database or file
+      // For backward compatibility, still create the merged version for file storage
+      // But we'll use dynamic generation for the actual system message
       const skeletonText = await getPublishedSystemMessageTemplate();
-
-      // Step 4: Merge KB into skeleton
       finalSystemMessage = mergeKBIntoSkeleton(skeletonText, kbMarkdown);
-
-      // Step 4.5: Replace ${businessName} placeholder with actual business name
       finalSystemMessage = finalSystemMessage.replace(/\$\{businessName\}/g, businessName);
-
-      // Step 5: Set system message file path
-      systemMessageFile = previewSystemMessageFile; // Use hashed naming
-    }
-    
-    // Always inject/update Website links section (for both new and reused files)
-    if (finalSystemMessage) {
       finalSystemMessage = injectWebsiteLinksSection(
         finalSystemMessage, 
         payload.url, 
         payload.canonicalUrls || []
       );
       
-      // Write the updated system message file
+      // Write legacy format to file (for backward compatibility)
       await writeTextFile(systemMessageFile, finalSystemMessage);
+    } else {
+      // Extract KB from reused preview file
+      const kbMatch = finalSystemMessage.match(/##\s*Business Knowledge\s*\n\n([\s\S]*?)(?=\n\n---|\n\n#|\n\n##|$)/);
+      if (kbMatch) {
+        kbMarkdown = kbMatch[1].trim();
+      }
     }
 
     // Step 6: Create demo URL and Chatwoot inbox
@@ -321,15 +322,74 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // Create system message record
+      // Get workflow ID for feature detection (workflow was just created)
+      const workflow = await prisma.workflow.findFirst({
+        where: { demoId: demo.id },
+        select: { id: true }
+      });
+
+      // Detect features (initially no KB linked, no Calendar)
+      // When creating a demo, neither feature should be enabled by default
+      const features = workflow ? await detectWorkflowFeatures(workflow.id) : {
+        hasKnowledgeBase: false,
+        hasCalendar: false
+      };
+
+      console.log(`📋 [Demo Create] Detected features for new demo: KB=${features.hasKnowledgeBase}, Calendar=${features.hasCalendar}`);
+      console.log(`📋 [Demo Create] Features should be: KB=false, Calendar=false (new demo)`);
+
+      // Get template
+      const template = await getPublishedSystemMessageTemplate();
+      console.log(`📋 [Demo Create] Template length: ${template.length} chars, has markers: ${/\[(PROTECTED|EDITABLE)_START:/.test(template)}`);
+
+      // Build editable content
+      const editableContent: EditableContent = {};
+      
+      // Set business knowledge (generated KB)
+      editableContent.business_knowledge = kbMarkdown || '*(Automatically generated section — do not edit manually.)*';
+
+      // Extract voice_pov from template defaults (if exists in reused file, use that)
+      if (reusingPreview) {
+        const voiceMatch = finalSystemMessage.match(/###\s*Voice & POV[\s\S]*?\n\n([\s\S]*?)(?=\n\n---|\n\n#|\n\n##|$)/);
+        if (voiceMatch) {
+          editableContent.voice_pov = voiceMatch[1].trim();
+        }
+      }
+
+      // Generate dynamic message
+      console.log(`📋 [Demo Create] Generating dynamic system message with features: KB=${features.hasKnowledgeBase}, Calendar=${features.hasCalendar}`);
+      let dynamicMessage = generateDynamicSystemMessage(
+        template,
+        features,
+        editableContent,
+        businessName
+      );
+      console.log(`📋 [Demo Create] Generated message length: ${dynamicMessage.length} chars`);
+      console.log(`📋 [Demo Create] Generated message preview (first 300 chars): ${dynamicMessage.substring(0, 300)}`);
+
+      // Inject website links into the dynamic message
+      dynamicMessage = injectWebsiteLinksSection(
+        dynamicMessage,
+        payload.url,
+        payload.canonicalUrls || []
+      );
+
+      // Create system message record with editable content
       await prisma.systemMessage.create({
         data: {
           demoId: demo.id,
-          content: finalSystemMessage,
+          content: dynamicMessage,
+          editableContent: editableContent as any,
           version: 1,
           isActive: true
         }
       });
+
+      // Update the file with dynamic message (overwrite legacy format)
+      await writeTextFile(systemMessageFile, dynamicMessage);
+      
+      // Update finalSystemMessage for n8n webhook (use dynamic version)
+      finalSystemMessage = dynamicMessage;
 
       console.log(`✅ Demo saved to database: ${demo.id}`);
       

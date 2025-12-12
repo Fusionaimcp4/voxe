@@ -17,7 +17,9 @@ import {
   User,
   GitBranch,
   Download,
-  Upload
+  Upload,
+  Lock,
+  Edit3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +39,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { validateTemplateStructure, testTemplateCustomization, extractSectionContent, replaceSectionContent } from '@/lib/template-validation';
+import { parseTemplateSections, type SystemMessageSection } from '@/lib/system-message-sections';
 
 interface SystemMessageVersion {
   id: string;
@@ -74,8 +77,11 @@ export default function AdminSystemMessagesPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSectionEditor, setShowSectionEditor] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string>('');
+  const [selectedSectionId, setSelectedSectionId] = useState<string>('');
+  const [selectedSectionType, setSelectedSectionType] = useState<'PROTECTED' | 'EDITABLE'>('PROTECTED');
   const [sectionContent, setSectionContent] = useState('');
   const [validationResults, setValidationResults] = useState<any>(null);
+  const [parsedSections, setParsedSections] = useState<SystemMessageSection[]>([]);
 
   useEffect(() => {
     fetchSystemMessageTemplate();
@@ -91,6 +97,9 @@ export default function AdminSystemMessagesPage() {
       if (response.ok) {
         setTemplate(data.template);
         setDraftContent(data.template.content);
+        // Parse sections from template
+        const sections = parseTemplateSections(data.template.content);
+        setParsedSections(sections);
       } else {
         setError(data.error || 'Failed to fetch system message template');
         toast.error('Failed to fetch system message template', { description: data.error });
@@ -106,6 +115,10 @@ export default function AdminSystemMessagesPage() {
   const handleContentChange = (value: string) => {
     setDraftContent(value);
     setHasUnsavedChanges(value !== template?.content);
+    
+    // Re-parse sections when content changes
+    const sections = parseTemplateSections(value);
+    setParsedSections(sections);
     
     // Validate template structure
     const validation = validateTemplateStructure(value);
@@ -146,41 +159,84 @@ export default function AdminSystemMessagesPage() {
     }
   };
 
-  const handleEditSection = (sectionTitle: string) => {
+  const handleEditSection = (sectionId: string, sectionType: 'PROTECTED' | 'EDITABLE') => {
     if (!draftContent) return;
     
-    // Map display names to actual section titles in the template
-    const sectionMap: { [key: string]: string } = {
-      'Business Knowledge': 'Business Knowledge',
-      'Knowledge Base Usage Guidelines': 'Knowledge Base Usage Guidelines',
-      'General Behavior': 'General Behavior', 
-      'Output Format': 'Output Format',
-      'Example Scenarios': 'Example Scenarios'
+    // Find the section by ID
+    const section = parsedSections.find(s => s.id === sectionId && s.type === sectionType);
+    
+    if (!section) {
+      toast.error(`Section "${sectionId}" not found in template`);
+      return;
+    }
+    
+    // Map section IDs to display titles
+    const sectionTitles: Record<string, string> = {
+      core_role: 'Core Role Instructions',
+      kb_usage: 'Knowledge Base Usage Guidelines',
+      calendar_booking: 'Calendar Booking',
+      information_received: 'Information You Receive',
+      escalation_rules: 'Escalation Rules',
+      output_format: 'Output Format',
+      voice_pov: 'Voice & POV',
+      business_knowledge: 'Business Knowledge',
     };
     
-    const actualSectionTitle = sectionMap[sectionTitle] || sectionTitle;
-    const sectionData = extractSectionContent(draftContent, actualSectionTitle);
-    
-    if (sectionData.found) {
-      setSelectedSection(actualSectionTitle);
-      setSectionContent(sectionData.content.replace(`## ${actualSectionTitle}`, '').trim());
-      setShowSectionEditor(true);
-    } else {
-      toast.error(`Section "${sectionTitle}" not found in template`);
-      console.log('Available sections:', draftContent.match(/^##\s*.*$/gm));
-    }
+    setSelectedSection(sectionTitles[sectionId] || sectionId);
+    setSelectedSectionId(sectionId);
+    setSelectedSectionType(sectionType);
+    setSectionContent(section.content);
+    setShowSectionEditor(true);
   };
 
   const handleSaveSection = () => {
-    if (!draftContent || !selectedSection) return;
+    if (!draftContent || !selectedSectionId) return;
     
     try {
-      const updatedContent = replaceSectionContent(draftContent, selectedSection, sectionContent);
+      // Replace the section content in the template
+      // Find the section markers and replace the content between them
+      const startMarker = `[${selectedSectionType}_START:${selectedSectionId}]`;
+      const endMarker = `[${selectedSectionType}_END:${selectedSectionId}]`;
+      
+      // Escape special regex characters in markers
+      const escapedStart = startMarker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedEnd = endMarker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      
+      // Match the entire section including markers
+      const regex = new RegExp(
+        `${escapedStart}[\\s\\S]*?${escapedEnd}`,
+        'g'
+      );
+      
+      // Check if section exists
+      if (!regex.test(draftContent)) {
+        toast.error(`Section "${selectedSection}" not found in template`);
+        return;
+      }
+      
+      // Replace with new content (preserve markers, update content)
+      const updatedContent = draftContent.replace(
+        regex,
+        `${startMarker}\n${sectionContent.trim()}\n${endMarker}`
+      );
+      
       setDraftContent(updatedContent);
       setHasUnsavedChanges(true);
+      
+      // Re-parse sections to update the UI
+      const sections = parseTemplateSections(updatedContent);
+      setParsedSections(sections);
+      
+      // Reset section editor state
       setShowSectionEditor(false);
+      setSelectedSection('');
+      setSelectedSectionId('');
+      setSelectedSectionType('PROTECTED');
+      setSectionContent('');
+      
       toast.success(`Section "${selectedSection}" updated successfully`);
     } catch (error) {
+      console.error('Error saving section:', error);
       toast.error(`Failed to update section: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
@@ -502,32 +558,103 @@ export default function AdminSystemMessagesPage() {
         </Card>
       )}
 
-      {/* Section Editor */}
+      {/* Section Editor - Organized by Protected and Editable */}
       <Card className="bg-white border border-slate-200 dark:border-slate-700">
         <CardHeader>
-          <CardTitle className="text-slate-900 dark:text-slate-100">Section Editor</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-1">
-            {[
-              'Business Knowledge',
-              'Knowledge Base Usage Guidelines', 
-              'General Behavior',
-              'Output Format',
-              'Example Scenarios'
-            ].map((section) => (
-              <Button
-                key={section}
-                variant="outline"
-                size="sm"
-                onClick={() => handleEditSection(section)}
-                className="bg-white text-slate-900 border-slate-300 hover:bg-slate-50 text-xs px-2 py-1 h-7"
-              >
-                <Settings className="w-3 h-3 mr-1" />
-                {section.split(' ')[0]}
-              </Button>
-            ))}
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-slate-900 dark:text-slate-100">Section Editor</CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Edit individual sections. All sections are editable by admin.
+              </p>
+            </div>
+            {parsedSections.length > 0 && (
+              <Badge className="bg-blue-100 text-blue-700">
+                {parsedSections.filter(s => s.type === 'PROTECTED').length} Protected • {parsedSections.filter(s => s.type === 'EDITABLE').length} Editable
+              </Badge>
+            )}
           </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Protected Sections */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-slate-500" />
+              Protected Sections
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {parsedSections
+                .filter(s => s.type === 'PROTECTED')
+                .map((section) => {
+                  const sectionTitles: Record<string, string> = {
+                    core_role: 'Core Role Instructions',
+                    kb_usage: 'Knowledge Base Usage Guidelines',
+                    calendar_booking: 'Calendar Booking',
+                    information_received: 'Information You Receive',
+                    escalation_rules: 'Escalation Rules',
+                    output_format: 'Output Format',
+                  };
+                  
+                  return (
+                    <Button
+                      key={section.id}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditSection(section.id, 'PROTECTED')}
+                      className="bg-white text-slate-900 border-slate-300 hover:bg-slate-50 text-xs px-3 py-2 h-auto justify-start"
+                    >
+                      <Settings className="w-3 h-3 mr-2 flex-shrink-0" />
+                      <span className="text-left truncate">
+                        {sectionTitles[section.id] || section.id}
+                      </span>
+                    </Button>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Editable Sections */}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+              <Edit3 className="w-4 h-4 text-slate-500" />
+              Editable Sections
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {parsedSections
+                .filter(s => s.type === 'EDITABLE')
+                .map((section) => {
+                  const sectionTitles: Record<string, string> = {
+                    voice_pov: 'Voice & POV',
+                    business_knowledge: 'Business Knowledge',
+                    faqs: 'FAQs',
+                    custom_instructions: 'Custom Instructions',
+                  };
+                  
+                  return (
+                    <Button
+                      key={section.id}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditSection(section.id, 'EDITABLE')}
+                      className="bg-white text-slate-900 border-slate-300 hover:bg-slate-50 text-xs px-3 py-2 h-auto justify-start"
+                    >
+                      <Edit3 className="w-3 h-3 mr-2 flex-shrink-0" />
+                      <span className="text-left truncate">
+                        {sectionTitles[section.id] || section.id}
+                      </span>
+                    </Button>
+                  );
+                })}
+            </div>
+          </div>
+
+          {parsedSections.length === 0 && (
+            <div className="text-center py-8 text-slate-500">
+              <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+              <p className="text-sm">No sections found. Template may not have section markers.</p>
+              <p className="text-xs mt-1">Sections are marked with [PROTECTED_START:id] and [EDITABLE_START:id]</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -692,32 +819,52 @@ export default function AdminSystemMessagesPage() {
 
       {/* Section Editor Dialog */}
       <Dialog open={showSectionEditor} onOpenChange={setShowSectionEditor}>
-        <DialogContent className="sm:max-w-[800px] max-h-[80vh]">
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
+              {selectedSectionType === 'PROTECTED' ? (
+                <Lock className="h-5 w-5 text-slate-500" />
+              ) : (
+                <Edit3 className="h-5 w-5 text-slate-500" />
+              )}
               Edit Section: {selectedSection}
+              <Badge className={selectedSectionType === 'PROTECTED' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}>
+                {selectedSectionType}
+              </Badge>
             </DialogTitle>
             <DialogDescription>
               Edit the content of the {selectedSection} section. Changes will be applied to the draft.
+              {selectedSectionType === 'PROTECTED' && (
+                <span className="block mt-1 text-amber-600">
+                  ⚠️ This is a protected section. Changes affect core AI functionality.
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="sectionContent">Section Content</Label>
+          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 flex flex-col">
+              <Label htmlFor="sectionContent" className="mb-2">Section Content</Label>
               <Textarea
                 id="sectionContent"
                 value={sectionContent}
                 onChange={(e) => setSectionContent(e.target.value)}
                 placeholder="Enter section content..."
-                className="min-h-[400px] font-mono text-sm bg-white text-slate-900 border-slate-300 focus:border-slate-400 placeholder:text-slate-500"
+                className="flex-1 min-h-[400px] font-mono text-sm bg-white text-slate-900 border-slate-300 focus:border-slate-400 placeholder:text-slate-500 resize-none"
               />
+              <p className="text-xs text-slate-500 mt-2">
+                {sectionContent.length} characters
+              </p>
             </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowSectionEditor(false)}
+              onClick={() => {
+                setShowSectionEditor(false);
+                setSelectedSection('');
+                setSelectedSectionId('');
+                setSectionContent('');
+              }}
               className="bg-white text-slate-900 border-slate-300 hover:bg-slate-50"
             >
               Cancel
@@ -726,6 +873,7 @@ export default function AdminSystemMessagesPage() {
               onClick={handleSaveSection}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
+              <Save className="w-4 h-4 mr-2" />
               Save Section
             </Button>
           </DialogFooter>

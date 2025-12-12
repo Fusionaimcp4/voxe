@@ -23,6 +23,15 @@ export async function GET(request: NextRequest) {
       select: { id: true }
     });
 
+    console.log(`[System Messages API] Found ${demos.length} demos for user ${userId}`);
+
+    // If no demos, return empty array
+    if (demos.length === 0) {
+      return NextResponse.json({
+        messages: []
+      });
+    }
+
     // Fetch user's system messages
     const messages = await prisma.systemMessage.findMany({
       where: {
@@ -43,6 +52,17 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    console.log(`[System Messages API] Found ${messages.length} system messages for user ${userId}`);
+
+    // Check if there are demos without system messages
+    const demoIds = demos.map(d => d.id);
+    const messageDemoIds = messages.map(m => m.demoId);
+    const demosWithoutMessages = demoIds.filter(id => !messageDemoIds.includes(id));
+    
+    if (demosWithoutMessages.length > 0) {
+      console.warn(`[System Messages API] Found ${demosWithoutMessages.length} demos without system messages:`, demosWithoutMessages);
+    }
+
     return NextResponse.json({
       messages
     });
@@ -50,7 +70,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('System messages API error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch system messages' },
+      { error: 'Failed to fetch system messages', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

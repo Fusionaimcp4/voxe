@@ -347,6 +347,19 @@ export async function PUT(
         console.error('⚠️ Failed to toggle calendar nodes in n8n workflows (non-critical):', n8nError);
         // Don't fail the integration update if n8n update fails
       }
+
+      // Regenerate system messages to include/exclude Calendar section
+      // This will update both the database/file AND n8n workflows
+      try {
+        console.log(`🔄 [Calendar Toggle] Regenerating system messages for all user workflows...`);
+        const { regenerateSystemMessagesForUser } = await import('@/lib/system-message-regenerate');
+        await regenerateSystemMessagesForUser(userId);
+        console.log(`✅ [Calendar Toggle] Regenerated system messages and updated n8n workflows (Calendar ${body.isActive ? 'enabled' : 'disabled'})`);
+      } catch (regenError) {
+        console.error('❌ [Calendar Toggle] Failed to regenerate system messages:', regenError);
+        console.error('   Error details:', regenError instanceof Error ? regenError.stack : String(regenError));
+        // Don't fail the integration update if regeneration fails, but log the error clearly
+      }
     }
 
     return NextResponse.json({

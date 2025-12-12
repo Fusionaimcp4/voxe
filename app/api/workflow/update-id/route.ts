@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { n8nCredentialService } from '@/lib/n8n-credentials';
+import { regenerateSystemMessageForWorkflow } from '@/lib/system-message-regenerate';
 
 interface WorkflowIdPayload {
   businessName: string;
@@ -100,6 +101,16 @@ export async function POST(request: NextRequest) {
 
       console.log(`✅ Updated workflow ${workflow.id} with n8n ID: ${payload.workflowId}`);
       
+      // Regenerate and update system message in n8n now that we have the workflow ID
+      try {
+        console.log(`🔄 Regenerating system message for workflow ${workflow.id} and updating n8n...`);
+        await regenerateSystemMessageForWorkflow(workflow.id);
+        console.log(`✅ System message updated in n8n workflow ${payload.workflowId}`);
+      } catch (smError) {
+        console.error(`❌ Failed to update system message in n8n:`, smError);
+        // Don't fail the entire workflow update if system message update fails
+      }
+      
       // Update Fusion credentials for this workflow (following system message update pattern)
       try {
         console.log(`🔄 Setting up user-specific Fusion credentials for workflow ${payload.workflowId}...`);
@@ -127,6 +138,16 @@ export async function POST(request: NextRequest) {
       });
 
       console.log(`✅ Created new workflow ${newWorkflow.id} with n8n ID: ${payload.workflowId}`);
+      
+      // Regenerate and update system message in n8n now that we have the workflow ID
+      try {
+        console.log(`🔄 Regenerating system message for new workflow ${newWorkflow.id} and updating n8n...`);
+        await regenerateSystemMessageForWorkflow(newWorkflow.id);
+        console.log(`✅ System message updated in n8n workflow ${payload.workflowId}`);
+      } catch (smError) {
+        console.error(`❌ Failed to update system message in n8n:`, smError);
+        // Don't fail the entire workflow update if system message update fails
+      }
       
       // Update Fusion credentials for this new workflow (following system message update pattern)
       try {
